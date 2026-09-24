@@ -5,79 +5,96 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Distortion World</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
     /* 🌌 테마: 다크-블루 심연 */
     body {
         font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
         background: radial-gradient(circle at 50% 50%, #0d1b2a 0%, #040814 100%);
-        color: #e0e1dd; display: flex; padding: 30px; user-select: none; margin: 0; height: 100vh; overflow: hidden; letter-spacing: 0.5px;
+        color: #e0e1dd; display: flex; padding: 15px; user-select: none; margin: 0; height: 100vh; overflow: hidden; letter-spacing: 0.5px;
     }
 
-    /* 🎛️ 사이드바 (UI 패널 - 좌측) */
+    /* 🎛️ 사이드바 (UI 패널 - 좌측) - 너비 축소 */
     #sidebar {
-        width: 360px; min-width: 360px; padding: 25px; background: #0b132b; border: 1px solid #1c2541; border-radius: 8px; margin-right: 40px;
+        width: 270px; min-width: 270px; padding: 15px; background: #0b132b; border: 1px solid #1c2541; border-radius: 8px; margin-right: 15px;
         overflow-y: auto; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8); z-index: 5000;
     }
     #sidebar::-webkit-scrollbar { width: 6px; }
     #sidebar::-webkit-scrollbar-thumb { background: #415a77; border-radius: 4px; }
 
-    /* 🎛️ 퀘스트/단서 보드 (UI 패널 - 우측 추가) */
+    /* 🎛️ 퀘스트/단서 보드 (UI 패널 - 우측) - 너비 축소 */
     #right-panel {
-        width: 320px; min-width: 320px; padding: 25px; background: #0b132b; border: 1px solid #1c2541; border-radius: 8px; margin-left: 40px;
+        width: 260px; min-width: 260px; padding: 15px; background: #0b132b; border: 1px solid #1c2541; border-radius: 8px; margin-left: 15px;
         overflow-y: auto; box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8); z-index: 5000;
-        display: flex; flex-direction: column; gap: 15px;
+        display: flex; flex-direction: column; gap: 12px;
     }
     #right-panel::-webkit-scrollbar { width: 6px; }
     #right-panel::-webkit-scrollbar-thumb { background: #415a77; border-radius: 4px; }
 
-    .board-section { background: #040814; border: 1px solid #1c2541; border-radius: 6px; padding: 15px; display: flex; flex-direction: column; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-    .board-title { color: #00f5d4; font-size: 14px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #1c2541; padding-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+    .board-section { background: #040814; border: 1px solid #1c2541; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+    .board-title { color: #00f5d4; font-size: 13px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px dashed #1c2541; padding-bottom: 6px; display: flex; align-items: center; gap: 5px; }
     
-    .quest-input { width: 100%; height: 80px; background: transparent; color: #e0e1dd; border: none; resize: none; outline: none; font-family: inherit; font-size: 13px; line-height: 1.6; }
-    .quest-display { font-size: 13px; line-height: 1.6; white-space: pre-wrap; color: #e0e1dd; min-height: 80px; }
+    .quest-input { width: 100%; height: 70px; background: transparent; color: #e0e1dd; border: none; resize: none; outline: none; font-family: inherit; font-size: 12px; line-height: 1.5; }
+    .quest-display { font-size: 12px; line-height: 1.5; white-space: pre-wrap; color: #e0e1dd; min-height: 70px; }
     
-    /* 🌟 체크박스 퀘스트 아이템 스타일 추가 */
-    .quest-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #1c2541; }
+    /* 🌟 체크박스 퀘스트 아이템 스타일 */
+    .quest-item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: 12px; border-bottom: 1px solid #1c2541; }
     .quest-item:last-child { border-bottom: none; }
-    .quest-item input[type="checkbox"] { cursor: pointer; accent-color: #00f5d4; margin-top: 3px; }
+    .quest-item input[type="checkbox"] { cursor: pointer; accent-color: #00f5d4; margin-top: 2px; }
     .quest-item.completed span { text-decoration: line-through; color: #415a77; }
-    .del-btn { cursor: pointer; color: #ff4d4d; font-size: 12px; margin-left: auto; background: none; border: none; outline: none; padding: 0 5px; }
+    .del-btn { cursor: pointer; color: #ff4d4d; font-size: 11px; margin-left: auto; background: none; border: none; outline: none; padding: 0 5px; }
     .del-btn:hover { color: #ff9f1c; }
-    .add-quest-box { display: flex; gap: 5px; margin-top: 10px; border-top: 1px dashed #1c2541; padding-top: 10px; }
-    .quest-input-field { flex: 1; background: #0b132b; border: 1px solid #415a77; color: #fff; padding: 8px; border-radius: 4px; font-size: 12px; outline: none; }
+    .add-quest-box { display: flex; gap: 5px; margin-top: 8px; border-top: 1px dashed #1c2541; padding-top: 8px; }
+    .quest-input-field { flex: 1; background: #0b132b; border: 1px solid #415a77; color: #fff; padding: 6px; border-radius: 4px; font-size: 11px; outline: none; }
     
-    .clue-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; min-height: 200px; }
+    .clue-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; min-height: 150px; }
     .clue-list::-webkit-scrollbar { width: 4px; }
     .clue-list::-webkit-scrollbar-thumb { background: #415a77; }
     
-    .clue-item { background: #1b263b; margin-bottom: 8px; padding: 10px; border-radius: 4px; border-left: 3px solid #00f5d4; font-size: 12px; line-height: 1.5; color: #e0e1dd; word-break: keep-all; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
+    .clue-item { background: #1b263b; margin-bottom: 6px; padding: 8px; border-radius: 4px; border-left: 3px solid #00f5d4; font-size: 11px; line-height: 1.4; color: #e0e1dd; word-break: keep-all; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
     .clue-item b { color: #7fb3d5; margin-right: 5px; }
     .clue-item.marker-item { border-left-color: #ff9f1c; background: #141b2d; }
 
-    h1 { font-size: 20px; color: #778da9; text-align: center; margin-bottom: 20px; font-weight: 600; border-bottom: 1px solid #1c2541; padding-bottom: 15px; }
-    h3 { font-size: 13px; margin-bottom: 10px; color: #778da9; font-weight: bold; margin-top: 20px; }
+    h1 { font-size: 18px; color: #778da9; text-align: center; margin-bottom: 15px; font-weight: 600; border-bottom: 1px solid #1c2541; padding-bottom: 10px; }
+    h3 { font-size: 12px; margin-bottom: 8px; color: #778da9; font-weight: bold; margin-top: 15px; }
     
-    .btn { display: block; width: 100%; padding: 10px; box-sizing: border-box; background: #1b263b; border: 1px solid #415a77; color: #e0e1dd; border-radius: 4px; cursor: pointer; margin-bottom: 8px; font-size: 13px; text-align: center; transition: all 0.2s; }
+    .btn { display: block; width: 100%; padding: 8px; box-sizing: border-box; background: #1b263b; border: 1px solid #415a77; color: #e0e1dd; border-radius: 4px; cursor: pointer; margin-bottom: 6px; font-size: 12px; text-align: center; transition: all 0.2s; }
     .btn:hover { background: #415a77; color: #fff;}
     
-    .system-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    /* 🌟 버튼 그리드 스타일 */
+    .system-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 15px; }
     .system-grid .btn { margin-bottom: 0; font-weight: bold; }
     
-    .tool-btn { text-align: left; padding-left: 15px; }
-    .tool-btn.active-tool { background: #3e5c76 !important; border-color: #e0e1dd !important; color: #fff !important; box-shadow: inset 4px 0 0 #00f5d4; }
+    .tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 10px; }
+    .tool-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-bottom: 10px; }
     
-    .toggle-container { display: flex; background: #080c16; padding: 4px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #1c2541; }
-    .toggle-btn { flex: 1; padding: 8px; background: transparent; color: #778da9; border: none; cursor: pointer; font-size: 13px; border-radius: 3px; transition: 0.2s; font-weight: bold; }
+    .tool-grid .btn, .tool-grid-2 .btn { 
+        margin-bottom: 0; 
+        padding: 6px 2px; 
+        font-size: 11px; 
+        line-height: 1.2;
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        text-align: center; 
+        word-break: keep-all; 
+    }
+
+    .tool-btn.active-tool { background: #3e5c76 !important; border-color: #00f5d4 !important; color: #fff !important; box-shadow: inset 0 0 0 2px #00f5d4; }
+    
+    .toggle-container { display: flex; background: #080c16; padding: 4px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #1c2541; }
+    .toggle-btn { flex: 1; padding: 6px; background: transparent; color: #778da9; border: none; cursor: pointer; font-size: 11px; border-radius: 3px; transition: 0.2s; font-weight: bold; }
     .toggle-btn.active, .toggle-btn.gimmick-type-active { background: #415a77; color: #fff; }
     .toggle-btn.prop-on { color: #00f5d4; }
     .toggle-btn.prop-off { color: #415a77; text-decoration: line-through; }
 
-    .input-field { width: 100%; padding: 8px; box-sizing: border-box; background: #040814; border: 1px solid #415a77; color: #fff; border-radius: 4px; margin-bottom: 15px; }
+    .input-field { width: 100%; padding: 6px; box-sizing: border-box; background: #040814; border: 1px solid #415a77; color: #fff; border-radius: 4px; margin-bottom: 10px; font-size:11px; }
 
     /* 🎯 좌표계 */
     .coord-container {
         flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(11, 19, 43, 0.7); 
-        padding: 30px; border-radius: 8px; border: 1px solid #1c2541; position: relative; overflow: auto;
+        padding: 10px; border-radius: 8px; border: 1px solid #1c2541; position: relative; overflow: auto;
     }
     .col-labels { display: flex; margin-left: 40px; margin-bottom: 10px; }
     .col-label { width: 80px; text-align: center; margin-right: 6px; color: #778da9; font-size: 14px; font-weight: bold; }
@@ -157,12 +174,12 @@
 
 <div id="tooltip"></div>
 
-<!-- GM 모달들 (생략 없음) -->
-<div id="modal-notepad" class="gm-modal" style="left: 450px; top: 50px;">
+<!-- GM 모달들 -->
+<div id="modal-notepad" class="gm-modal" style="left: 350px; top: 50px;">
     <div class="gm-modal-header">📝 시크릿 메모장 <span class="gm-modal-close" onclick="closeModal('modal-notepad')">✖</span></div>
     <div class="gm-modal-body"><textarea id="gm-memo-area" placeholder="마스터 전용 메모장입니다."></textarea></div>
 </div>
-<div id="modal-timer" class="gm-modal" style="left: 750px; top: 50px; width: 260px;">
+<div id="modal-timer" class="gm-modal" style="left: 650px; top: 50px; width: 260px;">
     <div class="gm-modal-header">⏱️ 라운드 & 타이머 <span class="gm-modal-close" onclick="closeModal('modal-timer')">✖</span></div>
     <div class="gm-modal-body">
         <div style="display:flex; justify-content:space-between; align-items:center; background:#040814; padding:10px; border-radius:4px; border:1px solid #415a77;">
@@ -183,7 +200,7 @@
         </div>
     </div>
 </div>
-<div id="modal-dice" class="gm-modal" style="left: 1030px; top: 50px; width: 220px;">
+<div id="modal-dice" class="gm-modal" style="left: 930px; top: 50px; width: 220px;">
     <div class="gm-modal-header">🎲 다이스타워 <span class="gm-modal-close" onclick="closeModal('modal-dice')">✖</span></div>
     <div class="gm-modal-body">
         <div style="display:flex; gap:5px; margin-bottom:10px;">
@@ -206,87 +223,102 @@
         <button class="btn" onclick="saveMap()">💾 맵 저장</button>
         <button class="btn" onclick="copyMapImage('GM')">📸 GM 캡처</button>
         <button class="btn" onclick="copyMapImage('PL')">📸 PL 캡처</button>
-        <button id="btn-custom-asset" class="btn" style="grid-column: span 2; background:#8e44ad; border-color:#9b59b6; font-weight:bold; box-shadow: 0 0 10px rgba(142,68,173,0.5);" onclick="document.getElementById('asset-input').click()">🎨 커스텀 에셋 적용</button>
-        <input type="file" id="asset-input" style="display: none;" webkitdirectory directory multiple onchange="loadAssets(event)">
+        
+        <!-- 🌟 블럭 / 플레이어 에셋 버튼 분리 -->
+        <button id="btn-block-asset" class="btn" style="grid-column: span 2; background:#8e44ad; border-color:#9b59b6; font-weight:bold; box-shadow: 0 0 10px rgba(142,68,173,0.5);" onclick="document.getElementById('block-asset-input').click()">🧱 길블럭 에셋 ZIP 적용</button>
+        <input type="file" id="block-asset-input" style="display: none;" accept=".zip, image/*" multiple onchange="loadBlockAssets(event)">
+        
+        <button id="btn-player-asset" class="btn" style="grid-column: span 2; background:#d35400; border-color:#e67e22; font-weight:bold; box-shadow: 0 0 10px rgba(211,84,0,0.5);" onclick="document.getElementById('player-asset-input').click()">🧍 플레이어 에셋 ZIP 적용</button>
+        <input type="file" id="player-asset-input" style="display: none;" accept=".zip, image/*" multiple onchange="loadPlayerAssets(event)">
     </div>
 
-    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; margin-bottom: 15px;">
         <div style="flex: 2; display: flex; gap: 5px;">
-            <button class="btn" style="margin: 0; padding: 12px 0;" onclick="changeFloor(1)">▲ 위층 이동</button>
-            <button class="btn" style="margin: 0; padding: 12px 0;" onclick="changeFloor(-1)">▼ 아래층 이동</button>
+            <button class="btn" style="margin: 0; padding: 10px 0;" onclick="changeFloor(1)">▲ 위층</button>
+            <button class="btn" style="margin: 0; padding: 10px 0;" onclick="changeFloor(-1)">▼ 아래층</button>
         </div>
-        <div id="floor-info" style="flex: 1; font-size: 26px; color: #00f5d4; font-weight: bold; text-align: right; text-shadow: 0 0 10px rgba(0,245,212,0.5);">1F</div>
+        <div id="floor-info" style="flex: 1; font-size: 24px; color: #00f5d4; font-weight: bold; text-align: right; text-shadow: 0 0 10px rgba(0,245,212,0.5);">1F</div>
     </div>
 
     <div class="toggle-container">
-        <button id="mode-edit" class="toggle-btn active" onclick="setMode('edit')">설계 모드 (GM)</button>
-        <button id="mode-play" class="toggle-btn" onclick="setMode('play')">탐험 모드 (PL)</button>
+        <button id="mode-edit" class="toggle-btn active" onclick="setMode('edit')">설계(GM)</button>
+        <button id="mode-play" class="toggle-btn" onclick="setMode('play')">탐험(PL)</button>
     </div>
 
+    <!-- 🛠️ GM 설계 모드 -->
     <div id="edit-tools">
         <h3>블럭 속성</h3>
-        <div class="toggle-container" style="margin-bottom: 10px;">
+        <div class="toggle-container" style="margin-bottom: 8px;">
             <button id="brush-move-btn" class="toggle-btn prop-on" onclick="toggleBrushConstraint('move')">이동 가능</button>
             <button id="brush-rot-btn" class="toggle-btn prop-on" onclick="toggleBrushConstraint('rotate')">회전 가능</button>
         </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px; background:#080c16; padding:10px; border: 1px solid #1c2541; border-radius:4px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; background:#080c16; padding:8px; border: 1px solid #1c2541; border-radius:4px;">
             <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                <span style="font-size:11px; color:#778da9; margin-bottom:8px;">회전 방향: <b id="brush-rot-text" style="color:#00f5d4;">0도</b></span>
-                <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:11px;" onclick="rotateBrush()">90도 회전</button>
+                <span style="font-size:11px; color:#778da9; margin-bottom:6px;">회전 방향: <b id="brush-rot-text" style="color:#00f5d4;">0도</b></span>
+                <button class="btn" style="width:auto; margin:0; padding:5px 10px; font-size:11px;" onclick="rotateBrush()">90도 회전</button>
             </div>
             <div id="mini-preview" class="block" style="width: 56px; height: 56px; display:grid; grid-template-columns: repeat(3, 18px); grid-template-rows: repeat(3, 18px); pointer-events: none;"></div>
         </div>
 
-        <button id="btn-cross" class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'cross')">십자 (+)</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'straight')">일자 (|)</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'corner')">꺾은선 (ㄱ)</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'tshape')">외길 (ㅓ)</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'dot')">징검다리 (.)</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'start')" style="color:#7fb3d5;">시작 블럭</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'goal')" style="color:#82e0aa;">목표 블럭</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'wall')" style="color:#777;">장애물 벽</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'empty')">블럭 삭제</button>
+        <div class="tool-grid">
+            <button id="btn-cross" class="btn tool-btn active-tool" onclick="selectEditTool(this, 'shape', 'cross')">십자 (+)</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'straight')">일자 (|)</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'corner')">꺾은선 (ㄱ)</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'tshape')">외길 (ㅓ)</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'dot')">징검다리</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'empty')">블럭 삭제</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'start')" style="color:#7fb3d5;">시작블럭</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'goal')" style="color:#82e0aa;">목표블럭</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'wall')" style="color:#777;">장애물벽</button>
+        </div>
 
         <h3>기믹 및 시스템 설정</h3>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'system', 'spawn')" style="color:#00f5d4; font-weight:bold;">👣 플레이어 위치 지정</button>
+        <button class="btn tool-btn" onclick="selectEditTool(this, 'system', 'spawn')" style="color:#00f5d4; font-weight:bold; width: 100%; margin-bottom: 8px;">👣 플레이어 위치 지정</button>
         
-        <div class="toggle-container" style="margin-top:10px;">
+        <div class="toggle-container" style="margin-top:8px;">
             <button id="bind-a" class="toggle-btn gimmick-type-active" onclick="setGimmickBinding('A')">블럭 고정</button>
             <button id="bind-b" class="toggle-btn" onclick="setGimmickBinding('B')">공간 고정</button>
         </div>
-        <input type="text" id="gimmick-memo" class="input-field" placeholder="마우스 오버 메모 (설치 시 자동 비워짐)">
+        <input type="text" id="gimmick-memo" class="input-field" placeholder="마우스 오버 메모">
         
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'item')">◆ 아이템</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'enemy')">☠ 적 (몬스터)</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'rock')">■ 바위</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'waterfall')">⇈ 폭포</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'warphole')">◎ 워프홀</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'delete')">기믹 삭제</button>
+        <div class="tool-grid">
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'item')">◆ 아이템</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'enemy')">☠ 몬스터</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'rock')">■ 바위</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'waterfall')">⇈ 폭포</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'warphole')">◎ 워프홀</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'delete')">기믹삭제</button>
+        </div>
     </div>
     
+    <!-- 🎮 PL 탐험 모드 -->
     <div id="play-tools" style="display: none;">
-        <div style="display: flex; gap: 5px; margin-bottom: 8px;">
-            <button id="btn-lantern" class="btn tool-btn" onclick="toggleLanternMode()" style="flex: 1; color:#f39c12; margin-bottom:0; font-weight:bold; text-align:center; padding-left:0;">🏮 등불 모드: OFF</button>
+        <div style="display: flex; gap: 5px; margin-bottom: 6px;">
+            <button id="btn-lantern" class="btn tool-btn" onclick="toggleLanternMode()" style="flex: 1; color:#f39c12; margin-bottom:0; font-weight:bold; text-align:center; padding-left:0;">🏮 등불: OFF</button>
             <button id="btn-gimmick-blind" class="btn tool-btn" onclick="toggleGimmickBlindMode()" style="flex: 1; color:#c77dff; margin-bottom:0; font-weight:bold; text-align:center; padding-left:0;">❓ 블라인드: OFF</button>
         </div>
-        <button id="btn-fog-preview" class="btn tool-btn" onclick="toggleGMFog()" style="color:#f1c40f; margin-bottom:15px; font-weight:bold; text-align:center; padding-left:0;">👁️ PL 시야 (미리보기): OFF</button>
+        <button id="btn-fog-preview" class="btn tool-btn" onclick="toggleGMFog()" style="width: 100%; color:#f1c40f; margin-bottom:12px; font-weight:bold; text-align:center;">👁️ PL 시야 (미리보기): OFF</button>
 
         <h3>단서 마커 (안개 위 힌트)</h3>
-        <div class="toggle-container" style="margin-bottom:10px;">
-            <button id="clue-size-tile" class="toggle-btn gimmick-type-active" onclick="setClueSize('tile')">타일 지정 (작게)</button>
-            <button id="clue-size-block" class="toggle-btn" onclick="setClueSize('block')">블럭 덮기 (크게)</button>
+        <div class="toggle-container" style="margin-bottom:8px;">
+            <button id="clue-size-tile" class="toggle-btn gimmick-type-active" onclick="setClueSize('tile')">타일(작게)</button>
+            <button id="clue-size-block" class="toggle-btn" onclick="setClueSize('block')">블럭(크게)</button>
         </div>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueWarning')">⚠️</button>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueQuestion')">❓</button>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueClear')">단서 지우기</button>
+        <div class="tool-grid">
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueWarning')">⚠️ 경고</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueQuestion')">❓ 의문</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueClear')">지우기</button>
+        </div>
 
         <h3>조작 및 마스터 툴</h3>
-        <button class="btn tool-btn active-tool" onclick="selectPlayTool(this, 'rotate')">블럭 회전 (좌클릭)</button>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'movePlayer')">플레이어 강제 이동</button>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'fogToggle')" style="color:#f1c40f;">🌫️ 블럭 개별 안개 걷기/덮기</button>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'identifyGimmick')" style="color:#3498db; font-weight:bold;">🔍 기믹 정체 밝히기 (토글)</button>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'solveGimmick')" style="color:#e74c3c;">✔ 해결한 기믹 해제</button>
+        <div class="tool-grid-2">
+            <button class="btn tool-btn active-tool" onclick="selectPlayTool(this, 'rotate')">회전(클릭)</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'movePlayer')">플 강제이동</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'fogToggle')" style="color:#f1c40f;">🌫️ 안개토글</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'identifyGimmick')" style="color:#3498db; font-weight:bold;">🔍 정체식별</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'solveGimmick')" style="color:#e74c3c; grid-column: span 2;">✔ 해결 기믹 해제</button>
+        </div>
         
         <h3>표식(마커) 지정</h3>
         <select id="marker-color-select" class="input-field" style="margin-bottom: 5px;">
@@ -296,18 +328,20 @@
             <option value="#fee440">노란색 (주의)</option>
             <option value="#ff9f1c">주황색 (기타)</option>
         </select>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'markerA')">표식 꽂기 (블럭 종속 - 🚩)</button>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'markerB')">표식 꽂기 (공간 고정 - 🏁)</button>
-        <button class="btn tool-btn" onclick="selectPlayTool(this, 'markerClear')">표식 뽑기</button>
+        <div class="tool-grid-2">
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'markerA')">🚩 블럭종속</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'markerB')">🏁 공간고정</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'markerClear')" style="grid-column: span 2;">표식 뽑기</button>
+        </div>
     </div>
 
     <!-- 🛠️ GM 도구상자 -->
-    <div style="margin-top: 20px; border-top: 1px solid #1c2541; padding-top: 15px;">
-        <button class="btn" style="background:#2980b9; border-color:#3498db; color:#fff; font-weight:bold;" onclick="toggleGMMenu()">🛠️ GM 도구상자 열기/닫기</button>
+    <div style="margin-top: 15px; border-top: 1px solid #1c2541; padding-top: 12px;">
+        <button class="btn" style="background:#2980b9; border-color:#3498db; color:#fff; font-weight:bold; width: 100%;" onclick="toggleGMMenu()">🛠️ GM 도구상자 열기/닫기</button>
         <div id="gm-tools-menu" style="display:none; margin-top: 8px; background:#080c16; padding:10px; border-radius:4px; border:1px solid #1c2541;">
-            <button class="btn tool-btn" style="margin-bottom:5px;" onclick="openModal('modal-notepad')">📝 시크릿 메모장 띄우기</button>
-            <button class="btn tool-btn" style="margin-bottom:5px;" onclick="openModal('modal-timer')">⏱️ 라운드 & 타이머 띄우기</button>
-            <button class="btn tool-btn" style="margin-bottom:0;" onclick="openModal('modal-dice')">🎲 다이스타워 띄우기</button>
+            <button class="btn tool-btn" style="margin-bottom:5px; width: 100%;" onclick="openModal('modal-notepad')">📝 시크릿 메모장 띄우기</button>
+            <button class="btn tool-btn" style="margin-bottom:5px; width: 100%;" onclick="openModal('modal-timer')">⏱️ 라운드 & 타이머 띄우기</button>
+            <button class="btn tool-btn" style="margin-bottom:0; width: 100%;" onclick="openModal('modal-dice')">🎲 다이스타워 띄우기</button>
         </div>
     </div>
 </div>
@@ -315,14 +349,16 @@
 <!-- 🎯 중앙 보드 -->
 <div class="coord-container" id="capture-target">
     <div class="col-labels">
-        <div class="col-label">A</div><div class="col-label">B</div><div class="col-label">C</div>
-        <div class="col-label">D</div><div class="col-label">E</div><div class="col-label">F</div><div class="col-label">G</div>
+        <!-- 🌟 가로(열) 라벨 숫자 -->
+        <div class="col-label">1</div><div class="col-label">2</div><div class="col-label">3</div>
+        <div class="col-label">4</div><div class="col-label">5</div><div class="col-label">6</div><div class="col-label">7</div>
     </div>
     
     <div class="board-body">
         <div class="row-labels">
-            <div class="row-label">1</div><div class="row-label">2</div><div class="row-label">3</div>
-            <div class="row-label">4</div><div class="row-label">5</div><div class="row-label">6</div><div class="row-label">7</div>
+            <!-- 🌟 세로(행) 라벨 알파벳 -->
+            <div class="row-label">A</div><div class="row-label">B</div><div class="row-label">C</div>
+            <div class="row-label">D</div><div class="row-label">E</div><div class="row-label">F</div><div class="row-label">G</div>
         </div>
         
         <div id="game-container" tabindex="0">
@@ -345,7 +381,7 @@
         <!-- 새 퀘스트 추가 박스 (GM 모드에서만 보임) -->
         <div id="quest-add-box" class="add-quest-box">
             <input type="text" id="new-quest-input" class="quest-input-field" placeholder="새로운 목표를 입력하세요..." onkeydown="if(event.key === 'Enter') addQuest()">
-            <button class="btn" style="width:40px; margin:0;" onclick="addQuest()">+</button>
+            <button class="btn" style="width:35px; margin:0;" onclick="addQuest()">+</button>
         </div>
     </div>
     
@@ -360,8 +396,8 @@
     <!-- 진행 힌트 -->
     <div class="board-section">
         <div class="board-title" style="color: #f1c40f;">💡 진행 힌트</div>
-        <textarea id="hint-input" class="quest-input" style="height: 60px;" placeholder="GM 텍스트 란: 플레이어가 막혔을 때 참고할 힌트를 적어주세요." onchange="savePanelData()"></textarea>
-        <div id="hint-display" class="quest-display" style="display:none; color: #f1c40f; min-height: 60px;"></div>
+        <textarea id="hint-input" class="quest-input" style="height: 50px;" placeholder="GM 텍스트 란: 플레이어가 막혔을 때 참고할 힌트를 적어주세요." onchange="savePanelData()"></textarea>
+        <div id="hint-display" class="quest-display" style="display:none; color: #f1c40f; min-height: 50px;"></div>
     </div>
 </div>
 
@@ -391,20 +427,20 @@
     let playerPositions = Array(MAX_FLOORS).fill(null);
     let playerPos = null; 
 
-    // 🌟 배열 기반의 체크리스트 퀘스트 데이터 저장소
+    // 배열 기반의 체크리스트 퀘스트 데이터 저장소
     let floorQuests = Array(MAX_FLOORS).fill(null).map(() => []); 
     let floorHints = Array(MAX_FLOORS).fill("");
 
     let selectedBlockForMove = null; 
     let highlightedBlocks = [];
 
-    // 커스텀 에셋 저장소
+    // 커스텀 에셋 저장소 (플레이어 기본 바라보는 방향 '아래'로 초기화)
     let customAssets = {
-        player: { '앞': null, '뒤': null, '왼쪽': null, '오른쪽': null, '왼쪽위': null, '오른쪽위': null, '왼쪽아래': null, '오른쪽아래': null },
+        player: { '위': null, '아래': null, '왼쪽': null, '오른쪽': null },
         blocks: { cross: null, straight: null, corner: null, tshape: null, dot: null, start: null, goal: null, wall: null, empty: null }
     };
 
-    let playerFacing = '앞';
+    let playerFacing = '아래'; // 카메라를 바라보는 기본 정면
     const pressedKeys = {};
 
     const blockTypes = {
@@ -478,27 +514,85 @@
         }
     });
 
-    function loadAssets(e) {
+    // 🌟 길블럭 에셋 ZIP 스캔
+    async function loadBlockAssets(e) {
         const files = e.target.files;
         if (!files || files.length === 0) return;
+        let loadedCount = 0;
         for (let file of files) {
-            const url = URL.createObjectURL(file);
-            const name = file.name.split('.')[0]; 
-            const dirMatch = name.match(/(왼쪽위|오른쪽위|왼쪽아래|오른쪽아래|왼쪽|오른쪽|앞|뒤)/);
-            if (dirMatch && !name.includes('십자') && !name.includes('일자') && !name.includes('꺾은선') && !name.includes('외길') && !name.includes('징검다리') && !name.includes('시작') && !name.includes('목표') && !name.includes('벽')) {
-                customAssets.player[dirMatch[0]] = url;
+            if (file.name.toLowerCase().endsWith('.zip')) {
+                try {
+                    const zip = new JSZip();
+                    const loadedZip = await zip.loadAsync(file);
+                    for (const [filename, zipEntry] of Object.entries(loadedZip.files)) {
+                        if (!zipEntry.dir && filename.match(/\.(png|jpg|jpeg|gif|webp)$/i)) {
+                            const blob = await zipEntry.async("blob");
+                            const url = URL.createObjectURL(blob);
+                            const name = filename.split('/').pop().split('.')[0]; 
+                            applyBlockAssetToStorage(name, url);
+                            loadedCount++;
+                        }
+                    }
+                } catch (err) { alert("ZIP 파일을 읽는 중 오류가 발생했습니다."); }
+            } else if (file.type.startsWith('image/')) {
+                const url = URL.createObjectURL(file);
+                const name = file.name.split('.')[0];
+                applyBlockAssetToStorage(name, url);
+                loadedCount++;
             }
-            if (name.includes('십자') || name.toLowerCase().includes('cross')) customAssets.blocks.cross = url;
-            if (name.includes('일자') || name.toLowerCase().includes('straight')) customAssets.blocks.straight = url;
-            if (name.includes('꺾은선') || name.toLowerCase().includes('corner')) customAssets.blocks.corner = url;
-            if (name.includes('외길') || name.toLowerCase().includes('tshape')) customAssets.blocks.tshape = url;
-            if (name.includes('징검다리') || name.toLowerCase().includes('dot')) customAssets.blocks.dot = url;
-            if (name.includes('시작') || name.toLowerCase().includes('start')) customAssets.blocks.start = url;
-            if (name.includes('목표') || name.toLowerCase().includes('goal')) customAssets.blocks.goal = url;
-            if (name.includes('벽') || name.toLowerCase().includes('wall')) customAssets.blocks.wall = url;
         }
-        alert('에셋이 성공적으로 맵핑되어 적용되었습니다!');
-        renderMap();
+        if (loadedCount > 0) { alert(`총 ${loadedCount}개의 길블럭 에셋이 성공적으로 적용되었습니다!`); renderMap(); }
+        e.target.value = '';
+    }
+
+    // 🌟 플레이어 에셋 ZIP 스캔
+    async function loadPlayerAssets(e) {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+        let loadedCount = 0;
+        for (let file of files) {
+            if (file.name.toLowerCase().endsWith('.zip')) {
+                try {
+                    const zip = new JSZip();
+                    const loadedZip = await zip.loadAsync(file);
+                    for (const [filename, zipEntry] of Object.entries(loadedZip.files)) {
+                        if (!zipEntry.dir && filename.match(/\.(png|jpg|jpeg|gif|webp)$/i)) {
+                            const blob = await zipEntry.async("blob");
+                            const url = URL.createObjectURL(blob);
+                            const name = filename.split('/').pop().split('.')[0]; 
+                            applyPlayerAssetToStorage(name, url);
+                            loadedCount++;
+                        }
+                    }
+                } catch (err) { alert("ZIP 파일을 읽는 중 오류가 발생했습니다."); }
+            } else if (file.type.startsWith('image/')) {
+                const url = URL.createObjectURL(file);
+                const name = file.name.split('.')[0];
+                applyPlayerAssetToStorage(name, url);
+                loadedCount++;
+            }
+        }
+        if (loadedCount > 0) { alert(`총 ${loadedCount}개의 플레이어 에셋이 성공적으로 적용되었습니다!`); renderMap(); }
+        e.target.value = '';
+    }
+
+    function applyBlockAssetToStorage(name, url) {
+        if (name.includes('십자') || name.toLowerCase().includes('cross')) customAssets.blocks.cross = url;
+        if (name.includes('일자') || name.toLowerCase().includes('straight')) customAssets.blocks.straight = url;
+        if (name.includes('꺾은선') || name.toLowerCase().includes('corner')) customAssets.blocks.corner = url;
+        if (name.includes('외길') || name.toLowerCase().includes('tshape')) customAssets.blocks.tshape = url;
+        if (name.includes('징검다리') || name.toLowerCase().includes('dot')) customAssets.blocks.dot = url;
+        if (name.includes('시작') || name.toLowerCase().includes('start')) customAssets.blocks.start = url;
+        if (name.includes('목표') || name.toLowerCase().includes('goal')) customAssets.blocks.goal = url;
+        if (name.includes('벽') || name.toLowerCase().includes('wall')) customAssets.blocks.wall = url;
+    }
+
+    // 🌟 방향 이름 추출 및 매핑
+    function applyPlayerAssetToStorage(name, url) {
+        if (name.endsWith('_위') || name === '위') customAssets.player['위'] = url;
+        else if (name.endsWith('_아래') || name === '아래') customAssets.player['아래'] = url;
+        else if (name.endsWith('_왼쪽') || name === '왼쪽') customAssets.player['왼쪽'] = url;
+        else if (name.endsWith('_오른쪽') || name === '오른쪽') customAssets.player['오른쪽'] = url;
     }
 
     function toggleGMMenu() {
@@ -526,12 +620,11 @@
     function resetTimer() { pauseTimer(); timeRemaining = 0; updateTimerDisplay(); timerDisplay.classList.remove('alert'); }
     function rollDice(max) { const result = Math.floor(Math.random() * max) + 1; document.getElementById('dice-result').innerText = result; const log = document.getElementById('dice-log'); const entry = document.createElement('div'); entry.innerText = `▶ 1d${max} = ${result}`; log.prepend(entry); }
 
-    function toggleLanternMode() { lanternMode = !lanternMode; const btn = document.getElementById('btn-lantern'); btn.classList.toggle('gimmick-type-active', lanternMode); btn.innerText = `🏮 등불 모드: ${lanternMode ? 'ON' : 'OFF'}`; renderMap(); }
+    function toggleLanternMode() { lanternMode = !lanternMode; const btn = document.getElementById('btn-lantern'); btn.classList.toggle('gimmick-type-active', lanternMode); btn.innerText = `🏮 등불: ${lanternMode ? 'ON' : 'OFF'}`; renderMap(); }
     function toggleGimmickBlindMode() { gimmickBlindMode = !gimmickBlindMode; const btn = document.getElementById('btn-gimmick-blind'); btn.classList.toggle('gimmick-type-active', gimmickBlindMode); btn.innerText = `❓ 블라인드: ${gimmickBlindMode ? 'ON' : 'OFF'}`; renderMap(); }
     function toggleGMFog() { if (currentMode === 'play') { gmFogPreview = !gmFogPreview; const btn = document.getElementById('btn-fog-preview'); if(gmFogPreview) { document.body.classList.add('preview-fog'); btn.classList.add('gimmick-type-active'); } else { document.body.classList.remove('preview-fog'); btn.classList.remove('gimmick-type-active'); } btn.innerText = `👁️ PL 시야 (미리보기): ${gmFogPreview ? 'ON' : 'OFF'}`; renderMap(); } }
     function setClueSize(size) { clueSizeMode = size; document.getElementById('clue-size-tile').className = `toggle-btn ${size === 'tile' ? 'gimmick-type-active' : ''}`; document.getElementById('clue-size-block').className = `toggle-btn ${size === 'block' ? 'gimmick-type-active' : ''}`; }
 
-    // 🌟 퀘스트 리스트 동작 함수들
     function addQuest() {
         const input = document.getElementById('new-quest-input');
         if(!input.value.trim()) return;
@@ -574,7 +667,6 @@
         document.getElementById('quest-add-box').style.display = (currentMode === 'edit') ? 'flex' : 'none';
     }
 
-    // 🌟 우측 텍스트 패널 데이터 저장 로직
     function savePanelData() {
         if (currentMode === 'edit') {
             floorHints[currentFloor] = document.getElementById('hint-input').value;
@@ -582,7 +674,7 @@
     }
 
     function saveMap() {
-        savePanelData(); // 패널 텍스트도 저장
+        savePanelData();
         if (currentMode === 'play' && playerPos) playerPositions[currentFloor] = { ...playerPos };
         const saveData = { mapData, worldGimmickData, worldMarkerData, worldClueData, currentFloor, playerSpawns, playerPositions, floorQuests, floorHints };
         const blob = new Blob([JSON.stringify(saveData)], { type: "application/json" });
@@ -599,11 +691,10 @@
                 worldClueData = loaded.worldClueData || Array.from({length: MAX_FLOORS}, () => Array.from({length: 21}, () => Array(21).fill(null)));
                 playerSpawns = loaded.playerSpawns || Array(MAX_FLOORS).fill(null); playerPositions = loaded.playerPositions || Array(MAX_FLOORS).fill(null);
                 
-                // 기존 문자열 형식의 퀘스트 배열도 호환되도록 처리
                 const loadedQuests = loaded.floorQuests || Array(MAX_FLOORS).fill(null).map(() => []);
                 floorQuests = loadedQuests.map(qList => {
                     if (Array.isArray(qList)) return qList;
-                    return qList ? [{text: qList, completed: false}] : []; // 옛날 텍스트 버전 대비 호환
+                    return qList ? [{text: qList, completed: false}] : [];
                 });
                 
                 floorHints = loaded.floorHints || Array(MAX_FLOORS).fill("");
@@ -654,7 +745,6 @@
 
     function rotateBrush() { brushRotation = (brushRotation + 90) % 360; updateBrushPreview(); }
     
-    // 🌟 층 이동 시 패널 데이터 불러오기 
     function updateFloorUI() { 
         document.getElementById('floor-info').innerText = floorNames[currentFloor]; 
         
@@ -665,7 +755,7 @@
     }
 
     function changeFloor(dir) {
-        savePanelData(); // 층 이동 전 현재 텍스트 저장
+        savePanelData(); 
         let newFloor = currentFloor + dir;
         if (newFloor >= 0 && newFloor < MAX_FLOORS) {
             if (currentMode === 'play' && playerPos) playerPositions[currentFloor] = { ...playerPos };
@@ -676,7 +766,6 @@
         }
     }
 
-    // 🌟 모드 전환 시 우측 패널 UI(읽기전용 vs 수정가능) 변경
     function setMode(mode) {
         if(currentMode === 'edit') savePanelData(); 
 
@@ -692,10 +781,11 @@
         document.getElementById('edit-tools').style.display = mode === 'edit' ? 'block' : 'none';
         document.getElementById('play-tools').style.display = mode === 'play' ? 'block' : 'none';
 
-        const assetBtn = document.getElementById('btn-custom-asset');
-        if(assetBtn) assetBtn.style.display = mode === 'edit' ? 'block' : 'none';
+        const blockAssetBtn = document.getElementById('btn-block-asset');
+        const playerAssetBtn = document.getElementById('btn-player-asset');
+        if(blockAssetBtn) blockAssetBtn.style.display = mode === 'edit' ? 'block' : 'none';
+        if(playerAssetBtn) playerAssetBtn.style.display = mode === 'edit' ? 'block' : 'none';
 
-        // 🌟 우측 패널 제어
         if (mode === 'play') {
             document.getElementById('hint-input').style.display = 'none';
             document.getElementById('hint-display').style.display = 'block';
@@ -804,11 +894,25 @@
         }
     }
 
+    // 🌟 방향키 입력으로 4방향 매핑 적용
     function updatePlayerFacing() {
-        const up = pressedKeys['ArrowUp'] || pressedKeys['KeyW'] || pressedKeys['w']; const down = pressedKeys['ArrowDown'] || pressedKeys['KeyS'] || pressedKeys['s']; const left = pressedKeys['ArrowLeft'] || pressedKeys['KeyA'] || pressedKeys['a']; const right = pressedKeys['ArrowRight'] || pressedKeys['KeyD'] || pressedKeys['d'];
+        const up = pressedKeys['ArrowUp'] || pressedKeys['KeyW'] || pressedKeys['w']; 
+        const down = pressedKeys['ArrowDown'] || pressedKeys['KeyS'] || pressedKeys['s']; 
+        const left = pressedKeys['ArrowLeft'] || pressedKeys['KeyA'] || pressedKeys['a']; 
+        const right = pressedKeys['ArrowRight'] || pressedKeys['KeyD'] || pressedKeys['d'];
+        
         let newFacing = playerFacing;
-        if (up && right) newFacing = '오른쪽위'; else if (up && left) newFacing = '왼쪽위'; else if (down && right) newFacing = '오른쪽아래'; else if (down && left) newFacing = '왼쪽아래'; else if (up) newFacing = '뒤'; else if (down) newFacing = '앞'; else if (left) newFacing = '왼쪽'; else if (right) newFacing = '오른쪽';
-        if (newFacing !== playerFacing) { playerFacing = newFacing; renderMap(); }
+        
+        // 상하좌우를 입력받아 _위, _아래, _왼쪽, _오른쪽 으로 변환
+        if (up) newFacing = '위'; 
+        else if (down) newFacing = '아래'; 
+        else if (left) newFacing = '왼쪽'; 
+        else if (right) newFacing = '오른쪽';
+        
+        if (newFacing !== playerFacing) { 
+            playerFacing = newFacing; 
+            renderMap(); 
+        }
     }
 
     window.addEventListener('keyup', function(e) { pressedKeys[e.code] = false; pressedKeys[e.key] = false; updatePlayerFacing(); });
@@ -826,14 +930,13 @@
         if (blockTypes[targetBlock.type].tiles[origIndex] === 1 || targetBlock.type === 'dot') { playerPos.wx = nwx; playerPos.wy = nwy; targetBlock.revealed = true; playerPositions[currentFloor] = playerPos; renderMap(); }
     }
 
-    // 🌟 오토 트래킹: 발견된 기믹과 마커를 스캔하여 우측 패널에 그리기
     function updateClueTracker() {
         const listEl = document.getElementById('clue-tracker-list');
         listEl.innerHTML = '';
         let hasClues = false;
-        const colNames = ['A','B','C','D','E','F','G'];
+        
+        const rowNames = ['A','B','C','D','E','F','G']; 
 
-        // 1. 블럭 종속 기믹 & 마커
         for(let y=0; y<GRID_SIZE; y++) {
             for(let x=0; x<GRID_SIZE; x++) {
                 const block = mapData[currentFloor][y][x];
@@ -844,24 +947,21 @@
                     const orig = getOriginalTileCoord(vx, vy, block.rotation);
                     const origIdx = orig.y*3 + orig.x;
 
-                    // 밝혀진 기믹이 있고 메모가 존재할 때
                     const bg = block.gimmicks[origIdx];
                     if(bg && bg.isIdentified && bg.memo) {
                         hasClues = true;
-                        listEl.innerHTML += `<li class="clue-item"><b>[${colNames[x]}-${y+1}]</b> ${bg.memo}</li>`;
+                        listEl.innerHTML += `<li class="clue-item"><b>[${rowNames[y]}-${x+1}]</b> ${bg.memo}</li>`;
                     }
                     
-                    // 마커 표시
                     const bm = block.markers[origIdx];
                     if(bm) {
                         hasClues = true;
-                        listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${bm}"><b>[${colNames[x]}-${y+1}] 🚩</b> 플레이어 표식</li>`;
+                        listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${bm}"><b>[${rowNames[y]}-${x+1}] 🚩</b> 플레이어 표식</li>`;
                     }
                 }
             }
         }
 
-        // 2. 공간 고정 기믹 & 마커
         for (let wy = 0; wy < GRID_SIZE * 3; wy++) {
             for (let wx = 0; wx < GRID_SIZE * 3; wx++) {
                 const bx = Math.floor(wx / 3); const by = Math.floor(wy / 3);
@@ -869,13 +969,13 @@
                 const wg = worldGimmickData[currentFloor][wy][wx];
                 if(wg && wg.isIdentified && wg.memo) {
                     hasClues = true;
-                    listEl.innerHTML += `<li class="clue-item"><b>[${colNames[bx]}-${by+1}]</b> ${wg.memo}</li>`;
+                    listEl.innerHTML += `<li class="clue-item"><b>[${rowNames[by]}-${bx+1}]</b> ${wg.memo}</li>`;
                 }
 
                 const wm = worldMarkerData[currentFloor][wy][wx];
                 if(wm) {
                     hasClues = true;
-                    listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${wm}"><b>[${colNames[bx]}-${by+1}] 🏁</b> 고정 표식</li>`;
+                    listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${wm}"><b>[${rowNames[by]}-${bx+1}] 🏁</b> 고정 표식</li>`;
                 }
             }
         }
@@ -925,6 +1025,7 @@
                 if (blockHasCustomImg && !stripContents) {
                     const bgEl = document.createElement('div'); bgEl.className = 'custom-block-bg'; bgEl.style.position = 'absolute'; bgEl.style.inset = '0';
                     bgEl.style.backgroundImage = `url(${customAssets.blocks[blockData.type]})`; bgEl.style.backgroundSize = 'cover'; bgEl.style.transform = `rotate(${blockData.rotation}deg)`; bgEl.style.zIndex = '0'; bgEl.style.borderRadius = '2px';
+                    bgEl.style.pointerEvents = 'none'; 
                     blockEl.appendChild(bgEl);
                 }
 
@@ -986,7 +1087,10 @@
             const ghostEl = document.createElement('div'); ghostEl.className = 'overlay-item player-marker';
             ghostEl.style.left = `${bx * 86 + 1 + vx * 26}px`; ghostEl.style.top = `${by * 86 + 1 + vy * 26}px`;  ghostEl.style.opacity = '0.5'; 
             let pIcon = `<div style="z-index:2; opacity:0.8;">${getPlayerMarkerSVG()}</div>`;
-            if(customAssets.player['앞']) pIcon = `<img src="${customAssets.player['앞']}" style="width:36px; height:36px; z-index:2; opacity:0.8; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8)); image-rendering:pixelated; position:relative; top:-5px;" />`;
+            
+            // 🌟 편집 모드에서도 등록된 플레이어 에셋 표시
+            if(customAssets.player['아래']) pIcon = `<img src="${customAssets.player['아래']}" style="width:36px; height:36px; z-index:2; opacity:0.8; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8)); image-rendering:pixelated; position:relative; top:-5px;" />`;
+            
             ghostEl.innerHTML = pIcon; overlayEl.appendChild(ghostEl);
         }
 
@@ -1048,12 +1152,16 @@
                 const playerEl = document.createElement('div'); playerEl.className = 'overlay-item player-marker';
                 playerEl.style.left = `${bx * 86 + 1 + vx * 26}px`; playerEl.style.top = `${by * 86 + 1 + vy * 26}px`;  
                 let playerHtml = `<div style="z-index:2;">${getPlayerMarkerSVG()}</div>`;
-                if (customAssets.player[playerFacing]) { playerHtml = `<img src="${customAssets.player[playerFacing]}" style="width: 36px; height: 36px; z-index: 2; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); image-rendering: pixelated; position: relative; top: -5px;" />`; }
+                
+                // 🌟 방향키로 변경된 playerFacing(위,아래,왼쪽,오른쪽)에 맞춰 이미지 매핑
+                if (customAssets.player[playerFacing]) { 
+                    playerHtml = `<img src="${customAssets.player[playerFacing]}" style="width: 36px; height: 36px; z-index: 2; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); image-rendering: pixelated; position: relative; top: -5px;" />`; 
+                }
+                
                 playerEl.innerHTML = playerHtml; overlayEl.appendChild(playerEl);
             }
         }
 
-        // 🌟 렌더링 마지막에 단서 수첩 목록 최신화
         updateClueTracker();
     }
 
