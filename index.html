@@ -224,7 +224,6 @@
         <button class="btn" onclick="copyMapImage('GM')">📸 GM 캡처</button>
         <button class="btn" onclick="copyMapImage('PL')">📸 PL 캡처</button>
         
-        <!-- 🌟 블럭 / 플레이어 에셋 버튼 분리 -->
         <button id="btn-block-asset" class="btn" style="grid-column: span 2; background:#8e44ad; border-color:#9b59b6; font-weight:bold; box-shadow: 0 0 10px rgba(142,68,173,0.5);" onclick="document.getElementById('block-asset-input').click()">🧱 길블럭 에셋 ZIP 적용</button>
         <input type="file" id="block-asset-input" style="display: none;" accept=".zip, image/*" multiple onchange="loadBlockAssets(event)">
         
@@ -587,10 +586,10 @@
         if (name.includes('벽') || name.toLowerCase().includes('wall')) customAssets.blocks.wall = url;
     }
 
-    // 🌟 방향 이름 추출 및 매핑
+    // 🌟 방향 이름 추출 및 매핑 (별칭 추가: 앞=아래, 뒤=위)
     function applyPlayerAssetToStorage(name, url) {
-        if (name.endsWith('_위') || name === '위') customAssets.player['위'] = url;
-        else if (name.endsWith('_아래') || name === '아래') customAssets.player['아래'] = url;
+        if (name.endsWith('_위') || name === '위' || name.endsWith('_뒤') || name === '뒤') customAssets.player['위'] = url;
+        else if (name.endsWith('_아래') || name === '아래' || name.endsWith('_앞') || name === '앞') customAssets.player['아래'] = url;
         else if (name.endsWith('_왼쪽') || name === '왼쪽') customAssets.player['왼쪽'] = url;
         else if (name.endsWith('_오른쪽') || name === '오른쪽') customAssets.player['오른쪽'] = url;
     }
