@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Distortion World</title>
+<title>깨어진 세계</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
@@ -14,7 +14,7 @@
         color: #e0e1dd; display: flex; padding: 15px; user-select: none; margin: 0; height: 100vh; overflow: hidden; letter-spacing: 0.5px;
     }
 
-    /* 🎛️ 사이드바 (UI 패널 - 좌측) - 너비 축소 */
+    /* 🎛️ 사이드바 (UI 패널 - 좌측) */
     #sidebar {
         width: 270px; min-width: 270px; padding: 15px; background: #0b132b; border: 1px solid #1c2541; border-radius: 8px; margin-right: 15px;
         overflow-y: auto; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8); z-index: 5000;
@@ -22,7 +22,7 @@
     #sidebar::-webkit-scrollbar { width: 6px; }
     #sidebar::-webkit-scrollbar-thumb { background: #415a77; border-radius: 4px; }
 
-    /* 🎛️ 퀘스트/단서 보드 (UI 패널 - 우측) - 너비 축소 */
+    /* 🎛️ 퀘스트/단서 보드 (UI 패널 - 우측) */
     #right-panel {
         width: 260px; min-width: 260px; padding: 15px; background: #0b132b; border: 1px solid #1c2541; border-radius: 8px; margin-left: 15px;
         overflow-y: auto; box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8); z-index: 5000;
@@ -91,31 +91,32 @@
 
     .input-field { width: 100%; padding: 6px; box-sizing: border-box; background: #040814; border: 1px solid #415a77; color: #fff; border-radius: 4px; margin-bottom: 10px; font-size:11px; }
 
-    /* 🎯 좌표계 */
+    /* 🎯 좌표계 (9x9) - 캡처 여백 방지를 위해 컨텐츠 크기에 맞춤 설정 */
     .coord-container {
-        flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(11, 19, 43, 0.7); 
+        display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(11, 19, 43, 0.7); 
         padding: 10px; border-radius: 8px; border: 1px solid #1c2541; position: relative; overflow: auto;
+        width: max-content; height: max-content; margin: auto;
     }
     .col-labels { display: flex; margin-left: 40px; margin-bottom: 10px; }
-    .col-label { width: 80px; text-align: center; margin-right: 6px; color: #778da9; font-size: 14px; font-weight: bold; }
+    .col-label { width: 62px; text-align: center; margin-right: 4px; color: #778da9; font-size: 14px; font-weight: bold; }
     .col-label:last-child { margin-right: 0; }
     
     .board-body { display: flex; align-items: flex-start; }
     .row-labels { display: flex; flex-direction: column; margin-right: 10px; }
-    .row-label { height: 80px; width: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; color: #778da9; font-size: 14px; font-weight: bold; }
+    .row-label { height: 62px; width: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; color: #778da9; font-size: 14px; font-weight: bold; }
     .row-label:last-child { margin-bottom: 0; }
 
     #game-container { position: relative; width: max-content; height: max-content; outline: none; }
-    #game-board { display: grid; grid-template-columns: repeat(7, 80px); grid-template-rows: repeat(7, 80px); gap: 6px; }
+    #game-board { display: grid; grid-template-columns: repeat(9, 62px); grid-template-rows: repeat(9, 62px); gap: 4px; }
 
     /* 🧩 블럭 */
     .block {
-        width: 80px; height: 80px; background-color: #1b263b; position: relative; cursor: pointer; box-sizing: border-box;
-        display: grid; grid-template-columns: repeat(3, 26px); grid-template-rows: repeat(3, 26px);
+        width: 62px; height: 62px; background-color: #1b263b; position: relative; cursor: pointer; box-sizing: border-box;
+        display: grid; grid-template-columns: repeat(3, 20px); grid-template-rows: repeat(3, 20px);
         border: 1px solid #415a77; border-radius: 2px; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
     }
     .block.empty-block { background-color: #040814; border: 1px dashed #1c2541; box-shadow: none; }
-    .block.wall-block { background-color: #0b132b; border-color: #040814; background-image: repeating-linear-gradient(45deg, #1c2541 25%, transparent 25%, transparent 75%, #1c2541 75%, #1c2541); background-size: 10px 10px; cursor: not-allowed; }
+    .block.wall-block { background-color: #0b132b; border-color: #040814; background-image: repeating-linear-gradient(45deg, #1c2541 25%, transparent 25%, transparent 75%, #1c2541 75%, #1c2541); background-size: 8px 8px; cursor: not-allowed; }
     
     .block.selected-block::after { content: ''; position: absolute; inset: -3px; border: 3px solid #00b4d8; box-shadow: 0 0 15px rgba(0, 180, 216, 0.6); z-index: 100; pointer-events: none; }
     .block.highlight::after { content: ''; position: absolute; inset: -2px; background-color: rgba(0, 245, 212, 0.15); border: 2px solid #00f5d4; z-index: 100; pointer-events: none; }
@@ -124,11 +125,18 @@
     .constraint-icon.no-move { bottom: 2px; left: 2px; color: #ff4d4d; border: 1px solid #ff4d4d; } 
     .constraint-icon.no-rot { bottom: 2px; right: 2px; color: #ffb703; border: 1px solid #ffb703; } 
 
-    .tile { width: 26px; height: 26px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; position: relative; box-sizing: border-box; }
+    .tile { width: 20px; height: 20px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; position: relative; box-sizing: border-box; }
     .path { background-color: #4a6fa5; }
     .start-point .path { background-color: #3a86ff; }
     .goal-point .path { background-color: #38b000; }
     
+    /* 1x1 타일 상태 스타일 (벽, 물, 발판) */
+    .tile-wall { background-color: #0b132b !important; background-image: repeating-linear-gradient(45deg, #1c2541 25%, transparent 25%, transparent 75%, #1c2541 75%, #1c2541) !important; background-size: 6px 6px !important; box-shadow: inset 0 0 2px #000 !important; cursor: not-allowed; }
+    .tile-water-low { background-color: #2c3e50 !important; box-shadow: inset 0 0 5px rgba(0,0,0,0.5) !important; }
+    .tile-water-high { background-color: #3498db !important; box-shadow: inset 0 0 10px rgba(52,152,219,0.5) !important; }
+    .tile-plat-low { background-color: #0b132b !important; border: 1px dashed #778da9 !important; box-shadow: none !important;}
+    .tile-plat-high { background-color: #8b4513 !important; box-shadow: inset 0 0 5px rgba(0,0,0,0.8) !important; }
+
     /* 🌫️ 안개 */
     .fog { position: absolute; inset: -1px; background-color: rgba(4, 8, 20, 0.6); z-index: 40; pointer-events: none; border: 1px solid #000; border-radius: 2px; }
     .capture-PL .fog, .preview-fog .fog { opacity: 1 !important; z-index: 99 !important; background-color: #040814 !important; border: 1px solid #1c2541 !important;}
@@ -136,7 +144,7 @@
     #world-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
     #clue-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 105; } 
     
-    .overlay-item { position: absolute; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; transition: top 0.15s ease, left 0.15s ease; pointer-events: none; }
+    .overlay-item { position: absolute; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; transition: top 0.15s ease, left 0.15s ease; pointer-events: none; }
     
     .gimmick-a::after { content: ''; position: absolute; inset: 0; background-color: rgba(0,0,0,0.4); pointer-events: none; z-index: 5; }
     .gimmick-b { filter: drop-shadow(0 0 3px rgba(255,255,255,0.4)); }
@@ -147,6 +155,8 @@
     .symbol-waterfall { color: #8ecae6; }
     .symbol-warp { color: #c77dff; }
     .symbol-enemy { color: #ff4d4d; }
+    .symbol-hole { color: #111; text-shadow: 0 0 2px #fff; }
+    .symbol-switch { color: #e74c3c; }
 
     .player-marker { display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: none; }
     
@@ -246,7 +256,7 @@
 
     <!-- 🛠️ GM 설계 모드 -->
     <div id="edit-tools">
-        <h3>블럭 속성</h3>
+        <h3>블럭 속성 (3x3 전체)</h3>
         <div class="toggle-container" style="margin-bottom: 8px;">
             <button id="brush-move-btn" class="toggle-btn prop-on" onclick="toggleBrushConstraint('move')">이동 가능</button>
             <button id="brush-rot-btn" class="toggle-btn prop-on" onclick="toggleBrushConstraint('rotate')">회전 가능</button>
@@ -272,9 +282,15 @@
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'wall')" style="color:#777;">장애물벽</button>
         </div>
 
+        <h3>타일 세부 설정 (1x1 격자)</h3>
+        <div class="tool-grid">
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 1)">🧱 타일 벽</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 2)">💧 물(수위)</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 3)">🟫 부유 발판</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 0)" style="grid-column: span 3; color:#7fb3d5;">기본 타일로 초기화</button>
+        </div>
+
         <h3>기믹 및 시스템 설정</h3>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'system', 'spawn')" style="color:#00f5d4; font-weight:bold; width: 100%; margin-bottom: 8px;">👣 플레이어 위치 지정</button>
-        
         <div class="toggle-container" style="margin-top:8px;">
             <button id="bind-a" class="toggle-btn gimmick-type-active" onclick="setGimmickBinding('A')">블럭 고정</button>
             <button id="bind-b" class="toggle-btn" onclick="setGimmickBinding('B')">공간 고정</button>
@@ -287,8 +303,14 @@
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'rock')">■ 바위</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'waterfall')">⇈ 폭포</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'warphole')">◎ 워프홀</button>
-            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'delete')">기믹삭제</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'hole')">🕳️ 구멍</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'switch')">🕹️ 스위치</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'delete')" style="grid-column: span 2;">기믹삭제</button>
         </div>
+
+        <!-- 버튼을 아래로 재배치 -->
+        <button id="btn-water-level" class="btn" style="background:#2980b9; border-color:#3498db; color:#fff; font-weight:bold; width:100%; margin-top:15px; margin-bottom:8px; font-size:13px;" onclick="toggleWaterLevel()">🌊 수위 연동: 낮음 (GM전용)</button>
+        <button class="btn tool-btn" onclick="selectEditTool(this, 'system', 'spawn')" style="color:#00f5d4; font-weight:bold; width: 100%; margin-bottom: 8px; border: 1px solid #415a77;">👣 플레이어 위치 지정</button>
     </div>
     
     <!-- 🎮 PL 탐험 모드 -->
@@ -345,19 +367,19 @@
     </div>
 </div>
 
-<!-- 🎯 중앙 보드 -->
+<!-- 🎯 중앙 보드 (9x9) - 사이즈 렌더링 영역 축소 적용 -->
 <div class="coord-container" id="capture-target">
     <div class="col-labels">
-        <!-- 🌟 가로(열) 라벨 숫자 -->
         <div class="col-label">1</div><div class="col-label">2</div><div class="col-label">3</div>
-        <div class="col-label">4</div><div class="col-label">5</div><div class="col-label">6</div><div class="col-label">7</div>
+        <div class="col-label">4</div><div class="col-label">5</div><div class="col-label">6</div>
+        <div class="col-label">7</div><div class="col-label">8</div><div class="col-label">9</div>
     </div>
     
     <div class="board-body">
         <div class="row-labels">
-            <!-- 🌟 세로(행) 라벨 알파벳 -->
             <div class="row-label">A</div><div class="row-label">B</div><div class="row-label">C</div>
-            <div class="row-label">D</div><div class="row-label">E</div><div class="row-label">F</div><div class="row-label">G</div>
+            <div class="row-label">D</div><div class="row-label">E</div><div class="row-label">F</div>
+            <div class="row-label">G</div><div class="row-label">H</div><div class="row-label">I</div>
         </div>
         
         <div id="game-container" tabindex="0">
@@ -373,11 +395,7 @@
     <!-- 메인 퀘스트 (체크리스트) -->
     <div class="board-section">
         <div class="board-title">📜 이번 층의 목표</div>
-        
-        <!-- 동적 리스트가 표시될 영역 -->
         <div id="quest-list-container"></div>
-        
-        <!-- 새 퀘스트 추가 박스 (GM 모드에서만 보임) -->
         <div id="quest-add-box" class="add-quest-box">
             <input type="text" id="new-quest-input" class="quest-input-field" placeholder="새로운 목표를 입력하세요..." onkeydown="if(event.key === 'Enter') addQuest()">
             <button class="btn" style="width:35px; margin:0;" onclick="addQuest()">+</button>
@@ -388,7 +406,6 @@
     <div class="board-section" style="flex: 1;">
         <div class="board-title">🔍 단서 수첩 (자동 스크랩)</div>
         <ul id="clue-tracker-list" class="clue-list">
-            <!-- 자바스크립트로 자동 생성됨 -->
         </ul>
     </div>
 
@@ -401,7 +418,7 @@
 </div>
 
 <script>
-    const GRID_SIZE = 7;
+    const GRID_SIZE = 9;
     const MAX_FLOORS = 3;
     const floorNames = ["B1", "1F", "2F"];
     
@@ -421,25 +438,24 @@
 
     let lanternMode = false;
     let gimmickBlindMode = false;
+    let globalWaterLevel = false; 
 
     let playerSpawns = Array(MAX_FLOORS).fill(null);
     let playerPositions = Array(MAX_FLOORS).fill(null);
     let playerPos = null; 
 
-    // 배열 기반의 체크리스트 퀘스트 데이터 저장소
     let floorQuests = Array(MAX_FLOORS).fill(null).map(() => []); 
     let floorHints = Array(MAX_FLOORS).fill("");
 
     let selectedBlockForMove = null; 
     let highlightedBlocks = [];
 
-    // 커스텀 에셋 저장소 (플레이어 기본 바라보는 방향 '아래'로 초기화)
     let customAssets = {
         player: { '위': null, '아래': null, '왼쪽': null, '오른쪽': null },
         blocks: { cross: null, straight: null, corner: null, tshape: null, dot: null, start: null, goal: null, wall: null, empty: null }
     };
 
-    let playerFacing = '아래'; // 카메라를 바라보는 기본 정면
+    let playerFacing = '아래'; 
     const pressedKeys = {};
 
     const blockTypes = {
@@ -459,7 +475,9 @@
         rock: { icon: '■', class: 'symbol-rock' }, 
         waterfall: { icon: '⇈', class: 'symbol-waterfall' },
         warphole: { icon: '◎', class: 'symbol-warp' },
-        enemy: { icon: '☠', class: 'symbol-enemy' }
+        enemy: { icon: '☠', class: 'symbol-enemy' },
+        hole: { icon: '🕳️', class: 'symbol-hole' },
+        switch: { icon: '🕹️', class: 'symbol-switch' }
     };
 
     let mapData, worldGimmickData, worldMarkerData, worldClueData; 
@@ -469,19 +487,21 @@
             Array.from({length: GRID_SIZE}, () => 
                 Array.from({length: GRID_SIZE}, () => ({
                     type: 'empty', rotation: 0, revealed: false, isMovable: true, isRotatable: true,
-                    gimmicks: Array(9).fill(null), markers: Array(9).fill(null), blockClue: null   
+                    gimmicks: Array(9).fill(null), markers: Array(9).fill(null), blockClue: null,
+                    tileStates: Array(9).fill(0) 
                 }))
             )
         );
-        worldGimmickData = Array.from({length: MAX_FLOORS}, () => Array.from({length: 21}, () => Array(21).fill(null)));
-        worldMarkerData = Array.from({length: MAX_FLOORS}, () => Array.from({length: 21}, () => Array(21).fill(null)));
-        worldClueData = Array.from({length: MAX_FLOORS}, () => Array.from({length: 21}, () => Array(21).fill(null)));
+        worldGimmickData = Array.from({length: MAX_FLOORS}, () => Array.from({length: 27}, () => Array(27).fill(null)));
+        worldMarkerData = Array.from({length: MAX_FLOORS}, () => Array.from({length: 27}, () => Array(27).fill(null)));
+        worldClueData = Array.from({length: MAX_FLOORS}, () => Array.from({length: 27}, () => Array(27).fill(null)));
         
         playerSpawns = Array(MAX_FLOORS).fill(null);
         playerPositions = Array(MAX_FLOORS).fill(null);
         
         floorQuests = Array(MAX_FLOORS).fill(null).map(() => []); 
         floorHints = Array(MAX_FLOORS).fill("");
+        globalWaterLevel = false;
     }
     createEmptyMap();
 
@@ -497,7 +517,7 @@
     }
     
     function getPlayerMarkerSVG() {
-        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#c42A12" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8));">
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="#c42A12" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8));">
             <circle cx="12" cy="8.5" r="3.5"/>
             <polygon points="12,21 16,14 8,14"/>
         </svg>`;
@@ -513,7 +533,6 @@
         }
     });
 
-    // 🌟 길블럭 에셋 ZIP 스캔
     async function loadBlockAssets(e) {
         const files = e.target.files;
         if (!files || files.length === 0) return;
@@ -544,7 +563,6 @@
         e.target.value = '';
     }
 
-    // 🌟 플레이어 에셋 ZIP 스캔
     async function loadPlayerAssets(e) {
         const files = e.target.files;
         if (!files || files.length === 0) return;
@@ -586,7 +604,6 @@
         if (name.includes('벽') || name.toLowerCase().includes('wall')) customAssets.blocks.wall = url;
     }
 
-    // 🌟 방향 이름 추출 및 매핑 (별칭 추가: 앞=아래, 뒤=위)
     function applyPlayerAssetToStorage(name, url) {
         if (name.endsWith('_위') || name === '위' || name.endsWith('_뒤') || name === '뒤') customAssets.player['위'] = url;
         else if (name.endsWith('_아래') || name === '아래' || name.endsWith('_앞') || name === '앞') customAssets.player['아래'] = url;
@@ -623,59 +640,41 @@
     function toggleGimmickBlindMode() { gimmickBlindMode = !gimmickBlindMode; const btn = document.getElementById('btn-gimmick-blind'); btn.classList.toggle('gimmick-type-active', gimmickBlindMode); btn.innerText = `❓ 블라인드: ${gimmickBlindMode ? 'ON' : 'OFF'}`; renderMap(); }
     function toggleGMFog() { if (currentMode === 'play') { gmFogPreview = !gmFogPreview; const btn = document.getElementById('btn-fog-preview'); if(gmFogPreview) { document.body.classList.add('preview-fog'); btn.classList.add('gimmick-type-active'); } else { document.body.classList.remove('preview-fog'); btn.classList.remove('gimmick-type-active'); } btn.innerText = `👁️ PL 시야 (미리보기): ${gmFogPreview ? 'ON' : 'OFF'}`; renderMap(); } }
     function setClueSize(size) { clueSizeMode = size; document.getElementById('clue-size-tile').className = `toggle-btn ${size === 'tile' ? 'gimmick-type-active' : ''}`; document.getElementById('clue-size-block').className = `toggle-btn ${size === 'block' ? 'gimmick-type-active' : ''}`; }
+    
+    function toggleWaterLevel() {
+        globalWaterLevel = !globalWaterLevel;
+        const btn = document.getElementById('btn-water-level');
+        btn.innerText = `🌊 수위 연동: ${globalWaterLevel ? '높음 (침수)' : '낮음'} (GM전용)`;
+        renderMap();
+    }
 
     function addQuest() {
         const input = document.getElementById('new-quest-input');
         if(!input.value.trim()) return;
-        
         floorQuests[currentFloor].push({ text: input.value.trim(), completed: false });
-        input.value = '';
-        renderQuestBoard();
+        input.value = ''; renderQuestBoard();
     }
-
-    function toggleQuest(index) {
-        floorQuests[currentFloor][index].completed = !floorQuests[currentFloor][index].completed;
-        renderQuestBoard();
-    }
-
-    function deleteQuest(index) {
-        floorQuests[currentFloor].splice(index, 1);
-        renderQuestBoard();
-    }
+    function toggleQuest(index) { floorQuests[currentFloor][index].completed = !floorQuests[currentFloor][index].completed; renderQuestBoard(); }
+    function deleteQuest(index) { floorQuests[currentFloor].splice(index, 1); renderQuestBoard(); }
 
     function renderQuestBoard() {
-        const container = document.getElementById('quest-list-container');
-        container.innerHTML = '';
-        
-        if (floorQuests[currentFloor].length === 0) {
-            container.innerHTML = `<div style="color:#778da9; font-size:12px; margin-top:5px;">설정된 목표가 없습니다.</div>`;
-        }
-
+        const container = document.getElementById('quest-list-container'); container.innerHTML = '';
+        if (floorQuests[currentFloor].length === 0) { container.innerHTML = `<div style="color:#778da9; font-size:12px; margin-top:5px;">설정된 목표가 없습니다.</div>`; }
         floorQuests[currentFloor].forEach((q, index) => {
-            const div = document.createElement('div');
-            div.className = `quest-item ${q.completed ? 'completed' : ''}`;
-            
-            if (currentMode === 'play') {
-                div.innerHTML = `<input type="checkbox" ${q.completed ? 'checked' : ''} onclick="toggleQuest(${index})"> <span>${q.text}</span>`;
-            } else {
-                div.innerHTML = `<span>- ${q.text}</span><button class="del-btn" onclick="deleteQuest(${index})">✖</button>`;
-            }
+            const div = document.createElement('div'); div.className = `quest-item ${q.completed ? 'completed' : ''}`;
+            if (currentMode === 'play') { div.innerHTML = `<input type="checkbox" ${q.completed ? 'checked' : ''} onclick="toggleQuest(${index})"> <span>${q.text}</span>`; } 
+            else { div.innerHTML = `<span>- ${q.text}</span><button class="del-btn" onclick="deleteQuest(${index})">✖</button>`; }
             container.appendChild(div);
         });
-        
         document.getElementById('quest-add-box').style.display = (currentMode === 'edit') ? 'flex' : 'none';
     }
 
-    function savePanelData() {
-        if (currentMode === 'edit') {
-            floorHints[currentFloor] = document.getElementById('hint-input').value;
-        }
-    }
+    function savePanelData() { if (currentMode === 'edit') { floorHints[currentFloor] = document.getElementById('hint-input').value; } }
 
     function saveMap() {
         savePanelData();
         if (currentMode === 'play' && playerPos) playerPositions[currentFloor] = { ...playerPos };
-        const saveData = { mapData, worldGimmickData, worldMarkerData, worldClueData, currentFloor, playerSpawns, playerPositions, floorQuests, floorHints };
+        const saveData = { mapData, worldGimmickData, worldMarkerData, worldClueData, currentFloor, playerSpawns, playerPositions, floorQuests, floorHints, globalWaterLevel };
         const blob = new Blob([JSON.stringify(saveData)], { type: "application/json" });
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "distortion_world_save.json"; link.click();
     }
@@ -687,14 +686,16 @@
             try {
                 const loaded = JSON.parse(event.target.result);
                 mapData = loaded.mapData; worldGimmickData = loaded.worldGimmickData; worldMarkerData = loaded.worldMarkerData; currentFloor = loaded.currentFloor;
-                worldClueData = loaded.worldClueData || Array.from({length: MAX_FLOORS}, () => Array.from({length: 21}, () => Array(21).fill(null)));
+                worldClueData = loaded.worldClueData || Array.from({length: MAX_FLOORS}, () => Array.from({length: 27}, () => Array(27).fill(null)));
                 playerSpawns = loaded.playerSpawns || Array(MAX_FLOORS).fill(null); playerPositions = loaded.playerPositions || Array(MAX_FLOORS).fill(null);
                 
+                mapData.forEach(f => f.forEach(r => r.forEach(b => { if(!b.tileStates) b.tileStates = Array(9).fill(0); })));
+                globalWaterLevel = loaded.globalWaterLevel || false;
+                const waterBtn = document.getElementById('btn-water-level');
+                if(waterBtn) waterBtn.innerText = `🌊 수위 연동: ${globalWaterLevel ? '높음 (침수)' : '낮음'} (GM전용)`;
+
                 const loadedQuests = loaded.floorQuests || Array(MAX_FLOORS).fill(null).map(() => []);
-                floorQuests = loadedQuests.map(qList => {
-                    if (Array.isArray(qList)) return qList;
-                    return qList ? [{text: qList, completed: false}] : [];
-                });
+                floorQuests = loadedQuests.map(qList => { if (Array.isArray(qList)) return qList; return qList ? [{text: qList, completed: false}] : []; });
                 
                 floorHints = loaded.floorHints || Array(MAX_FLOORS).fill("");
                 updateFloorUI(); if (currentMode === 'play') playerPos = playerPositions[currentFloor]; renderMap();
@@ -706,11 +707,20 @@
         const prevMode = currentMode;
         if (copyMode === 'GM') setMode('edit'); else if (copyMode === 'PL') { isCapturingPL = true; setMode('play'); }
         document.body.classList.add(`capture-${copyMode}`); renderMap(); 
+        
         const target = document.getElementById('capture-target');
+        
+        // 🌟 html2canvas 캡처 시 스크롤 잘림 현상 방지를 위해 임시 스타일 조정
+        const oldOverflow = target.style.overflow;
+        target.style.overflow = 'visible'; 
+        
         try {
             const canvas = await html2canvas(target, { backgroundColor: '#0b132b', scale: 2 });
-            canvas.toBlob(async (blob) => { try { const item = new ClipboardItem({ "image/png": blob }); await navigator.clipboard.write([item]); } catch (err) {} });
-        } catch (err) {} finally { document.body.classList.remove(`capture-${copyMode}`); if (copyMode === 'PL') isCapturingPL = false; setMode(prevMode); renderMap(); }
+            canvas.toBlob(async (blob) => { try { const item = new ClipboardItem({ "image/png": blob }); await navigator.clipboard.write([item]); alert('해당 맵이 성공적으로 클립보드에 복사되었습니다.'); } catch (err) { alert('클립보드 복사 중 오류가 발생했습니다.'); } });
+        } catch (err) {} finally { 
+            target.style.overflow = oldOverflow;
+            document.body.classList.remove(`capture-${copyMode}`); if (copyMode === 'PL') isCapturingPL = false; setMode(prevMode); renderMap(); 
+        }
     }
 
     function getOriginalTileCoord(vx, vy, rotation) {
@@ -746,10 +756,8 @@
     
     function updateFloorUI() { 
         document.getElementById('floor-info').innerText = floorNames[currentFloor]; 
-        
         document.getElementById('hint-input').value = floorHints[currentFloor] || "";
         document.getElementById('hint-display').innerText = floorHints[currentFloor] || "남겨진 힌트가 없습니다.";
-        
         renderQuestBoard();
     }
 
@@ -796,7 +804,6 @@
         }
         
         renderQuestBoard();
-
         selectedBlockForMove = null; highlightedBlocks = [];
         
         if (mode === 'play') {
@@ -842,8 +849,13 @@
             } 
             else if (currentEditCategory === 'shape') {
                 block.type = currentEditTool; block.rotation = brushRotation; block.isMovable = brushMovable; block.isRotatable = brushRotatable;
-                if (currentEditTool === 'empty' || currentEditTool === 'wall') { block.gimmicks = Array(9).fill(null); block.markers = Array(9).fill(null); block.isMovable = false; block.isRotatable = false; }
+                if (currentEditTool === 'empty' || currentEditTool === 'wall') { block.gimmicks = Array(9).fill(null); block.markers = Array(9).fill(null); block.isMovable = false; block.isRotatable = false; block.tileStates = Array(9).fill(0); }
             } 
+            else if (currentEditCategory === 'tile') {
+                if (block.type === 'empty' || block.type === 'wall') return;
+                if (!block.tileStates) block.tileStates = Array(9).fill(0);
+                block.tileStates[origIndex] = currentEditTool;
+            }
             else if (currentEditCategory === 'gimmick') {
                 if (currentEditTool === 'delete') { block.gimmicks[origIndex] = null; worldGimmickData[currentFloor][by*3 + vy][bx*3 + vx] = null; } 
                 else {
@@ -893,25 +905,14 @@
         }
     }
 
-    // 🌟 방향키 입력으로 4방향 매핑 적용
     function updatePlayerFacing() {
         const up = pressedKeys['ArrowUp'] || pressedKeys['KeyW'] || pressedKeys['w']; 
         const down = pressedKeys['ArrowDown'] || pressedKeys['KeyS'] || pressedKeys['s']; 
         const left = pressedKeys['ArrowLeft'] || pressedKeys['KeyA'] || pressedKeys['a']; 
         const right = pressedKeys['ArrowRight'] || pressedKeys['KeyD'] || pressedKeys['d'];
-        
         let newFacing = playerFacing;
-        
-        // 상하좌우를 입력받아 _위, _아래, _왼쪽, _오른쪽 으로 변환
-        if (up) newFacing = '위'; 
-        else if (down) newFacing = '아래'; 
-        else if (left) newFacing = '왼쪽'; 
-        else if (right) newFacing = '오른쪽';
-        
-        if (newFacing !== playerFacing) { 
-            playerFacing = newFacing; 
-            renderMap(); 
-        }
+        if (up) newFacing = '위'; else if (down) newFacing = '아래'; else if (left) newFacing = '왼쪽'; else if (right) newFacing = '오른쪽';
+        if (newFacing !== playerFacing) { playerFacing = newFacing; renderMap(); }
     }
 
     window.addEventListener('keyup', function(e) { pressedKeys[e.code] = false; pressedKeys[e.key] = false; updatePlayerFacing(); });
@@ -926,62 +927,48 @@
         const nbx = Math.floor(nwx / 3), nby = Math.floor(nwy / 3), vx = nwx % 3, vy = nwy % 3; const targetBlock = mapData[playerPos.z][nby][nbx];
         if (targetBlock.type === 'empty' || targetBlock.type === 'wall') return;
         const orig = getOriginalTileCoord(vx, vy, targetBlock.rotation); const origIndex = orig.y * 3 + orig.x;
-        if (blockTypes[targetBlock.type].tiles[origIndex] === 1 || targetBlock.type === 'dot') { playerPos.wx = nwx; playerPos.wy = nwy; targetBlock.revealed = true; playerPositions[currentFloor] = playerPos; renderMap(); }
+        
+        let isPassable = (blockTypes[targetBlock.type].tiles[origIndex] === 1 || targetBlock.type === 'dot');
+        const tState = targetBlock.tileStates ? targetBlock.tileStates[origIndex] : 0;
+        
+        if (tState === 1) isPassable = false; 
+        if (tState === 2 && globalWaterLevel === true) isPassable = false; 
+        if (tState === 3 && globalWaterLevel === false) isPassable = false; 
+        
+        if (isPassable) { playerPos.wx = nwx; playerPos.wy = nwy; targetBlock.revealed = true; playerPositions[currentFloor] = playerPos; renderMap(); }
     }
 
     function updateClueTracker() {
         const listEl = document.getElementById('clue-tracker-list');
         listEl.innerHTML = '';
         let hasClues = false;
-        
-        const rowNames = ['A','B','C','D','E','F','G']; 
+        const rowNames = ['A','B','C','D','E','F','G','H','I']; 
 
         for(let y=0; y<GRID_SIZE; y++) {
             for(let x=0; x<GRID_SIZE; x++) {
                 const block = mapData[currentFloor][y][x];
                 if(block.type === 'empty' || block.type === 'wall') continue;
-
                 for(let i=0; i<9; i++) {
                     const vx = i%3, vy = Math.floor(i/3);
-                    const orig = getOriginalTileCoord(vx, vy, block.rotation);
-                    const origIdx = orig.y*3 + orig.x;
+                    const orig = getOriginalTileCoord(vx, vy, block.rotation); const origIdx = orig.y*3 + orig.x;
 
                     const bg = block.gimmicks[origIdx];
-                    if(bg && bg.isIdentified && bg.memo) {
-                        hasClues = true;
-                        listEl.innerHTML += `<li class="clue-item"><b>[${rowNames[y]}-${x+1}]</b> ${bg.memo}</li>`;
-                    }
-                    
+                    if(bg && bg.isIdentified && bg.memo) { hasClues = true; listEl.innerHTML += `<li class="clue-item"><b>[${rowNames[y]}-${x+1}]</b> ${bg.memo}</li>`; }
                     const bm = block.markers[origIdx];
-                    if(bm) {
-                        hasClues = true;
-                        listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${bm}"><b>[${rowNames[y]}-${x+1}] 🚩</b> 플레이어 표식</li>`;
-                    }
+                    if(bm) { hasClues = true; listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${bm}"><b>[${rowNames[y]}-${x+1}] 🚩</b> 플레이어 표식</li>`; }
                 }
             }
         }
-
         for (let wy = 0; wy < GRID_SIZE * 3; wy++) {
             for (let wx = 0; wx < GRID_SIZE * 3; wx++) {
                 const bx = Math.floor(wx / 3); const by = Math.floor(wy / 3);
-                
                 const wg = worldGimmickData[currentFloor][wy][wx];
-                if(wg && wg.isIdentified && wg.memo) {
-                    hasClues = true;
-                    listEl.innerHTML += `<li class="clue-item"><b>[${rowNames[by]}-${bx+1}]</b> ${wg.memo}</li>`;
-                }
-
+                if(wg && wg.isIdentified && wg.memo) { hasClues = true; listEl.innerHTML += `<li class="clue-item"><b>[${rowNames[by]}-${bx+1}]</b> ${wg.memo}</li>`; }
                 const wm = worldMarkerData[currentFloor][wy][wx];
-                if(wm) {
-                    hasClues = true;
-                    listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${wm}"><b>[${rowNames[by]}-${bx+1}] 🏁</b> 고정 표식</li>`;
-                }
+                if(wm) { hasClues = true; listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${wm}"><b>[${rowNames[by]}-${bx+1}] 🏁</b> 고정 표식</li>`; }
             }
         }
-
-        if(!hasClues) {
-            listEl.innerHTML = `<li style="color:#778da9; text-align:center; margin-top:30px; font-size:12px; line-height:1.6;">밝혀진 기믹 메모나<br>설치된 마커가 없습니다.</li>`;
-        }
+        if(!hasClues) { listEl.innerHTML = `<li style="color:#778da9; text-align:center; margin-top:30px; font-size:12px; line-height:1.6;">밝혀진 기믹 메모나<br>설치된 마커가 없습니다.</li>`; }
     }
 
     function renderMap() {
@@ -1040,6 +1027,11 @@
                     else {
                         tileEl.className = `tile ${tilesLayout[origIndex] && blockData.type !== 'wall' ? 'path' : ''}`;
                         if (blockHasCustomImg) { tileEl.style.backgroundColor = 'transparent'; tileEl.style.boxShadow = 'none'; } else { tileEl.style.backgroundColor = ''; tileEl.style.boxShadow = ''; }
+                        
+                        let tState = blockData.tileStates ? blockData.tileStates[origIndex] : 0;
+                        if (tState === 1) tileEl.classList.add('tile-wall');
+                        else if (tState === 2) tileEl.classList.add(globalWaterLevel ? 'tile-water-high' : 'tile-water-low');
+                        else if (tState === 3) tileEl.classList.add(globalWaterLevel ? 'tile-plat-high' : 'tile-plat-low');
                     }
                     
                     tileEl.innerHTML = ''; delete tileEl.dataset.memo; 
@@ -1084,12 +1076,11 @@
             const spawn = playerSpawns[currentFloor];
             const bx = Math.floor(spawn.wx / 3), vx = spawn.wx % 3, by = Math.floor(spawn.wy / 3), vy = spawn.wy % 3;
             const ghostEl = document.createElement('div'); ghostEl.className = 'overlay-item player-marker';
-            ghostEl.style.left = `${bx * 86 + 1 + vx * 26}px`; ghostEl.style.top = `${by * 86 + 1 + vy * 26}px`;  ghostEl.style.opacity = '0.5'; 
+            
+            // 🌟 바뀐 타일 및 블럭 크기에 맞춘 위치 연산 (62px 블럭, 4px 간격, 20px 타일)
+            ghostEl.style.left = `${bx * 66 + 1 + vx * 20}px`; ghostEl.style.top = `${by * 66 + 1 + vy * 20}px`;  ghostEl.style.opacity = '0.5'; 
             let pIcon = `<div style="z-index:2; opacity:0.8;">${getPlayerMarkerSVG()}</div>`;
-            
-            // 🌟 편집 모드에서도 등록된 플레이어 에셋 표시
-            if(customAssets.player['아래']) pIcon = `<img src="${customAssets.player['아래']}" style="width:36px; height:36px; z-index:2; opacity:0.8; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8)); image-rendering:pixelated; position:relative; top:-5px;" />`;
-            
+            if(customAssets.player['아래']) pIcon = `<img src="${customAssets.player['아래']}" style="width:28px; height:28px; z-index:2; opacity:0.8; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8)); image-rendering:pixelated; position:relative; top:-4px;" />`;
             ghostEl.innerHTML = pIcon; overlayEl.appendChild(ghostEl);
         }
 
@@ -1098,8 +1089,8 @@
                 const blockData = mapData[currentFloor][y][x];
                 if (blockData.blockClue) {
                     const clueEl = document.createElement('div'); clueEl.className = 'overlay-item';
-                    clueEl.style.left = `${x * 86}px`; clueEl.style.top = `${y * 86}px`;  clueEl.style.width = '80px'; clueEl.style.height = '80px';
-                    clueEl.style.fontSize = '45px'; clueEl.style.textShadow = '0 0 10px rgba(0,0,0,1)';
+                    clueEl.style.left = `${x * 66}px`; clueEl.style.top = `${y * 66}px`;  clueEl.style.width = '62px'; clueEl.style.height = '62px';
+                    clueEl.style.fontSize = '35px'; clueEl.style.textShadow = '0 0 10px rgba(0,0,0,1)';
                     clueEl.innerHTML = blockData.blockClue === 'warning' ? '⚠️' : '❓'; clueOverlayEl.appendChild(clueEl);
                 }
             }
@@ -1109,7 +1100,7 @@
             for (let wx = 0; wx < GRID_SIZE * 3; wx++) {
                 const bx = Math.floor(wx / 3), vx = wx % 3; const by = Math.floor(wy / 3), vy = wy % 3; const blockUnder = mapData[currentFloor][by][bx];
                 const wClue = worldClueData[currentFloor][wy][wx];
-                if (wClue) { const clueEl = document.createElement('div'); clueEl.className = 'overlay-item'; clueEl.style.left = `${bx * 86 + 1 + vx * 26}px`; clueEl.style.top = `${by * 86 + 1 + vy * 26}px`; clueEl.style.fontSize = '18px'; clueEl.style.textShadow = '0 0 5px rgba(0,0,0,1)'; clueEl.innerHTML = wClue === 'warning' ? '⚠️' : '❓'; clueOverlayEl.appendChild(clueEl); }
+                if (wClue) { const clueEl = document.createElement('div'); clueEl.className = 'overlay-item'; clueEl.style.left = `${bx * 66 + 1 + vx * 20}px`; clueEl.style.top = `${by * 66 + 1 + vy * 20}px`; clueEl.style.fontSize = '18px'; clueEl.style.textShadow = '0 0 5px rgba(0,0,0,1)'; clueEl.innerHTML = wClue === 'warning' ? '⚠️' : '❓'; clueOverlayEl.appendChild(clueEl); }
 
                 let isOverlayBlockRevealed = (blockUnder.type === 'empty' || blockUnder.revealed);
                 if (lanternMode && currentMode === 'play') { if (playerPos && playerPos.z === currentFloor) { const pbx = Math.floor(playerPos.wx / 3); const pby = Math.floor(playerPos.wy / 3); isOverlayBlockRevealed = (Math.abs(bx - pbx) <= 1 && Math.abs(by - pby) <= 1); } else isOverlayBlockRevealed = false; }
@@ -1120,7 +1111,7 @@
                 const renderWGimmickGM = wGimmick && !isPLViewActive; const renderWGimmickPLIdentified = wGimmick && isPLViewActive && wGimmick.isIdentified && !shouldHideItem; const renderWGimmickPLBlind = wGimmick && isPLViewActive && !wGimmick.isIdentified && gimmickBlindMode && !shouldHideItem;
                 
                 if (renderWGimmickGM || renderWGimmickPLIdentified || renderWGimmickPLBlind || wMarker) {
-                    const itemEl = document.createElement('div'); itemEl.className = 'overlay-item'; itemEl.style.left = `${bx * 86 + 1 + vx * 26}px`; itemEl.style.top = `${by * 86 + 1 + vy * 26}px`;
+                    const itemEl = document.createElement('div'); itemEl.className = 'overlay-item'; itemEl.style.left = `${bx * 66 + 1 + vx * 20}px`; itemEl.style.top = `${by * 66 + 1 + vy * 20}px`;
                     itemEl.addEventListener('click', (e) => { e.stopPropagation(); handleTileClick(bx, by, vy * 3 + vx); }); itemEl.addEventListener('contextmenu', (e) => { e.preventDefault(); if (currentMode === 'play') handleRightClickBlockMove(bx, by); });
 
                     if (renderWGimmickGM) { 
@@ -1149,21 +1140,14 @@
             
             if (!shouldHidePlayer) {
                 const playerEl = document.createElement('div'); playerEl.className = 'overlay-item player-marker';
-                playerEl.style.left = `${bx * 86 + 1 + vx * 26}px`; playerEl.style.top = `${by * 86 + 1 + vy * 26}px`;  
+                playerEl.style.left = `${bx * 66 + 1 + vx * 20}px`; playerEl.style.top = `${by * 66 + 1 + vy * 20}px`;  
                 let playerHtml = `<div style="z-index:2;">${getPlayerMarkerSVG()}</div>`;
-                
-                // 🌟 방향키로 변경된 playerFacing(위,아래,왼쪽,오른쪽)에 맞춰 이미지 매핑
-                if (customAssets.player[playerFacing]) { 
-                    playerHtml = `<img src="${customAssets.player[playerFacing]}" style="width: 36px; height: 36px; z-index: 2; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); image-rendering: pixelated; position: relative; top: -5px;" />`; 
-                }
-                
+                if (customAssets.player[playerFacing]) { playerHtml = `<img src="${customAssets.player[playerFacing]}" style="width: 28px; height: 28px; z-index: 2; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); image-rendering: pixelated; position: relative; top: -4px;" />`; }
                 playerEl.innerHTML = playerHtml; overlayEl.appendChild(playerEl);
             }
         }
-
         updateClueTracker();
     }
-
     initBoard();
 </script>
 </body>
