@@ -1061,7 +1061,7 @@
                     }
                 }
 
-                if (blockData.type !== 'empty' && blockData.type !== 'wall' && !stripContents) {
+                if (blockData.type !== 'empty' && blockData.type !== 'wall' && !stripContents && !isCapturingPL) {
                     if (!blockData.isMovable) { const iconMove = document.createElement('div'); iconMove.className = 'constraint-icon no-move'; iconMove.innerText = '이동X'; blockEl.appendChild(iconMove); }
                     if (!blockData.isRotatable) { const iconRot = document.createElement('div'); iconRot.className = 'constraint-icon no-rot'; iconRot.innerText = '회전X'; blockEl.appendChild(iconRot); }
                 }
