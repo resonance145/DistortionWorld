@@ -291,6 +291,8 @@
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'tshape')">외길 (ㅓ)</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'dot')">징검다리</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'empty')">블럭 삭제</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'full')" title="9칸 전부 길. 어떤 블럭과도 이어진다">꽉 찬 (■)</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'edge')" title="1·4·7·8·9번 칸이 길. 일반 블럭과는 가운데 출구로, 같은 블럭·꽉 찬 블럭과는 모서리로도 이어진다">모서리 (ㄴ)</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'start')" style="color:#7fb3d5;">시작블럭</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'goal')" style="color:#82e0aa;">목표블럭</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'wall')" style="color:#777;">장애물벽</button>
@@ -469,7 +471,7 @@
 
     let customAssets = {
         player: { '위': null, '아래': null, '왼쪽': null, '오른쪽': null },
-        blocks: { cross: null, straight: null, corner: null, tshape: null, dot: null, start: null, goal: null, wall: null, empty: null }
+        blocks: { cross: null, straight: null, corner: null, tshape: null, dot: null, full: null, edge: null, start: null, goal: null, wall: null, empty: null }
     };
 
     let playerFacing = '아래'; 
@@ -483,6 +485,8 @@
         corner:   { tiles: [0,0,0, 0,1,1, 0,1,0] },
         tshape:   { tiles: [0,1,0, 1,1,0, 0,1,0] },
         dot:      { tiles: [0,0,0, 0,1,0, 0,0,0] },
+        full:     { tiles: [1,1,1, 1,1,1, 1,1,1] },   // 꽉 찬 블럭
+        edge:     { tiles: [1,0,0, 1,0,0, 1,1,1] },   // 모서리 블럭 (1·4·7·8·9)
         start:    { tiles: [0,1,0, 1,1,1, 0,1,0] },
         goal:     { tiles: [0,1,0, 1,1,1, 0,1,0] },
         surf:     { tiles: [1,1,1, 1,1,1, 1,1,1] }
@@ -617,6 +621,8 @@
         if (name.includes('일자') || name.toLowerCase().includes('straight')) customAssets.blocks.straight = url;
         if (name.includes('꺾은선') || name.toLowerCase().includes('corner')) customAssets.blocks.corner = url;
         if (name.includes('외길') || name.toLowerCase().includes('tshape')) customAssets.blocks.tshape = url;
+        if (name.includes('꽉') || name.toLowerCase().includes('full')) customAssets.blocks.full = url;
+        if (name.includes('모서리') || name.toLowerCase().includes('edge')) customAssets.blocks.edge = url;
         if (name.includes('징검다리') || name.toLowerCase().includes('dot')) customAssets.blocks.dot = url;
         if (name.includes('시작') || name.toLowerCase().includes('start')) customAssets.blocks.start = url;
         if (name.includes('목표') || name.toLowerCase().includes('goal')) customAssets.blocks.goal = url;
