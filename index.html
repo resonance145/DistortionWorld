@@ -116,6 +116,19 @@
         border: 1px solid #415a77; border-radius: 2px; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
     }
     .block.empty-block { background-color: #040814; border: 1px dashed #1c2541; box-shadow: none; }
+    /* 🌊 수로: 물이 차면 검보랏빛 신비한 물이 은은하게 빛난다 (정적 파도 무늬) */
+    .block.surf-block-low { background-color: #040814; border: 1px dashed #1c2541; box-shadow: none; } /* 물 빠짐 = 허공과 똑같이 보임 */
+    .block.surf-block-high { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M0 6 Q6 1 12 6 T24 6' fill='none' stroke='rgba(222,190,255,0.32)' stroke-width='1.1'/%3E%3Cpath d='M0 11 Q6 7 12 11 T24 11' fill='none' stroke='rgba(190,140,255,0.18)' stroke-width='0.8'/%3E%3C/svg%3E"), radial-gradient(ellipse at 28% 22%, rgba(196,128,255,0.38) 0%, transparent 58%), radial-gradient(ellipse at 78% 85%, rgba(120,60,200,0.30) 0%, transparent 60%), linear-gradient(135deg, #12061f 0%, #241040 38%, #3b1868 62%, #4d2386 78%, #1d0b33 100%); border: 1px solid #7a4fc0; box-shadow: inset 0 0 14px rgba(178,110,255,0.45), 0 0 8px rgba(150,80,240,0.45); }
+    .tile-surf-low { background: transparent !important; box-shadow: none !important; }
+    .tile-surf-high { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 4 Q2.5 1 5 4 T10 4' fill='none' stroke='rgba(222,190,255,0.38)' stroke-width='0.9'/%3E%3C/svg%3E"), radial-gradient(ellipse at 28% 22%, rgba(196,128,255,0.38) 0%, transparent 58%), radial-gradient(ellipse at 78% 85%, rgba(120,60,200,0.30) 0%, transparent 60%), linear-gradient(135deg, #12061f 0%, #241040 38%, #3b1868 62%, #4d2386 78%, #1d0b33 100%) !important; box-shadow: inset 0 0 6px rgba(190,130,255,0.55), 0 0 4px rgba(150,80,240,0.5) !important; }
+    /* GM 설계 모드 전용: 물이 빠진 수로가 어디 깔렸는지 줄무늬로 표시 (탐험 모드·PL 캡처에선 보이지 않음) */
+    body.gm-edit .block.surf-block-low { background: repeating-linear-gradient(45deg, rgba(170,120,240,0.55) 0px, rgba(170,120,240,0.55) 2px, transparent 2px, transparent 7px), #0a0618; border: 1px dashed #8a5fd0; }
+    body.gm-edit .tile-surf-low { background: repeating-linear-gradient(45deg, rgba(170,120,240,0.6) 0px, rgba(170,120,240,0.6) 1.5px, transparent 1.5px, transparent 5px), rgba(10,6,24,0.85) !important; outline: 1px dashed rgba(170,120,240,0.7); outline-offset: -1px; }
+    /* ⇅ 부유 블럭: 가라앉음 = 길 모양 윤곽선만 + 안으로 꺼진 그림자, 떠오름 = 아래에 떠 있는 그림자 */
+    .block.float-sunk { background: #060b18; border: 1px dashed #2f7d7a; box-shadow: inset 0 0 12px #000; }
+    .block.float-sunk .tile.path-ghost { background: transparent !important; box-shadow: inset 0 0 0 1px rgba(94, 214, 205, 0.55) !important; }
+    .block.float-up { box-shadow: 0 7px 9px -5px rgba(94, 214, 205, 0.7); border-color: #5ed6cd; }
+    .float-seal { position: absolute; top: 1px; right: 3px; font-size: 11px; color: #5ed6cd; z-index: 16; pointer-events: none; text-shadow: 0 0 4px #000; }
     .block.wall-block { background-color: #0b132b; border-color: #040814; background-image: repeating-linear-gradient(45deg, #1c2541 25%, transparent 25%, transparent 75%, #1c2541 75%, #1c2541); background-size: 8px 8px; cursor: not-allowed; }
     
     .block.selected-block::after { content: ''; position: absolute; inset: -3px; border: 3px solid #00b4d8; box-shadow: 0 0 15px rgba(0, 180, 216, 0.6); z-index: 100; pointer-events: none; }
@@ -125,7 +138,7 @@
     .constraint-icon.no-move { bottom: 2px; left: 2px; color: #ff4d4d; border: 1px solid #ff4d4d; } 
     .constraint-icon.no-rot { bottom: 2px; right: 2px; color: #ffb703; border: 1px solid #ffb703; } 
 
-    .tile { width: 20px; height: 20px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; position: relative; box-sizing: border-box; }
+    .tile { width: 20px; height: 20px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; position: relative; box-sizing: border-box; z-index: 1; } /* 커스텀 블럭 이미지(z-index 0) 위에 타일 상태(물·수로·벽)가 보이도록 */
     .path { background-color: #4a6fa5; }
     .start-point .path { background-color: #3a86ff; }
     .goal-point .path { background-color: #38b000; }
@@ -157,6 +170,7 @@
     .symbol-enemy { color: #ff4d4d; }
     .symbol-hole { color: #111; text-shadow: 0 0 2px #fff; }
     .symbol-switch { color: #e74c3c; }
+    .symbol-memo { color: #e0c3fc; }
 
     .player-marker { display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: none; }
     
@@ -225,7 +239,7 @@
 
 <!-- 🎛️ 좌측 패널 -->
 <div id="sidebar">
-    <h1>Distortion World</h1>
+    <h1>깨어진 세계</h1>
 
     <div class="system-grid">
         <button class="btn" onclick="document.getElementById('file-input').click()">📂 맵 열기</button>
@@ -280,14 +294,14 @@
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'start')" style="color:#7fb3d5;">시작블럭</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'goal')" style="color:#82e0aa;">목표블럭</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'wall')" style="color:#777;">장애물벽</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'shape', 'surf')" style="color:#c39bff; grid-column: span 3;">🌊 수로 블럭 (물 찼을 때 파도타기)</button>
         </div>
 
         <h3>타일 세부 설정 (1x1 격자)</h3>
         <div class="tool-grid">
             <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 1)">🧱 타일 벽</button>
-            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 2)">💧 물(수위)</button>
-            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 3)">🟫 부유 발판</button>
-            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 0)" style="grid-column: span 3; color:#7fb3d5;">기본 타일로 초기화</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 4)" style="color:#c39bff;">🌊 수로</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'tile', 0)" style="color:#7fb3d5;">초기화</button>
         </div>
 
         <h3>기믹 및 시스템 설정</h3>
@@ -303,14 +317,16 @@
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'rock')">■ 바위</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'waterfall')">⇈ 폭포</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'warphole')">◎ 워프홀</button>
-            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'hole')">🕳️ 구멍</button>
-            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'switch')">🕹️ 스위치</button>
-            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'delete')" style="grid-column: span 2;">기믹삭제</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'memo')" style="color:#e0c3fc;">✎ 메모</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'delete')" style="grid-column: span 3;">기믹삭제</button>
         </div>
 
         <!-- 버튼을 아래로 재배치 -->
         <button id="btn-water-level" class="btn" style="background:#2980b9; border-color:#3498db; color:#fff; font-weight:bold; width:100%; margin-top:15px; margin-bottom:8px; font-size:13px;" onclick="toggleWaterLevel()">🌊 수위 연동: 낮음 (GM전용)</button>
-        <button class="btn tool-btn" onclick="selectEditTool(this, 'system', 'spawn')" style="color:#00f5d4; font-weight:bold; width: 100%; margin-bottom: 8px; border: 1px solid #415a77;">👣 플레이어 위치 지정</button>
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:6px; margin-bottom:8px;">
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'system', 'spawn')" style="color:#00f5d4; font-weight:bold; margin:0; border: 1px solid #415a77;">👣 플레이어 위치 지정</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'system', 'float')" style="color:#5ed6cd; margin:0;" title="깔려 있는 길 블럭을 눌러 부유 블럭으로 지정/해제 (처음엔 가라앉음)">⇅ 부유 지정</button>
+        </div>
     </div>
     
     <!-- 🎮 PL 탐험 모드 -->
@@ -338,7 +354,8 @@
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'movePlayer')">플 강제이동</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'fogToggle')" style="color:#f1c40f;">🌫️ 안개토글</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'identifyGimmick')" style="color:#3498db; font-weight:bold;">🔍 정체식별</button>
-            <button class="btn tool-btn" onclick="selectPlayTool(this, 'solveGimmick')" style="color:#e74c3c; grid-column: span 2;">✔ 해결 기믹 해제</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'solveGimmick')" style="color:#e74c3c;">✔ 해결 기믹 해제</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'floatToggle')" style="color:#5ed6cd;" title="부유 블럭을 띄우거나 가라앉힘">⇅ 부유 전환</button>
         </div>
         
         <h3>표식(마커) 지정</h3>
@@ -467,7 +484,8 @@
         tshape:   { tiles: [0,1,0, 1,1,0, 0,1,0] },
         dot:      { tiles: [0,0,0, 0,1,0, 0,0,0] },
         start:    { tiles: [0,1,0, 1,1,1, 0,1,0] },
-        goal:     { tiles: [0,1,0, 1,1,1, 0,1,0] }
+        goal:     { tiles: [0,1,0, 1,1,1, 0,1,0] },
+        surf:     { tiles: [1,1,1, 1,1,1, 1,1,1] }
     };
     
     const gimmickVisuals = { 
@@ -477,7 +495,8 @@
         warphole: { icon: '◎', class: 'symbol-warp' },
         enemy: { icon: '☠', class: 'symbol-enemy' },
         hole: { icon: '🕳️', class: 'symbol-hole' },
-        switch: { icon: '🕹️', class: 'symbol-switch' }
+        switch: { icon: '🕹️', class: 'symbol-switch' },  // (버튼은 없앴지만 예전 맵 호환용으로 남겨 둠)
+        memo: { icon: '✎', class: 'symbol-memo' }
     };
 
     let mapData, worldGimmickData, worldMarkerData, worldClueData; 
@@ -748,8 +767,8 @@
     function updateBrushPreview() {
         document.getElementById('brush-rot-text').innerText = brushRotation + '도'; const previewEl = document.getElementById('mini-preview'); previewEl.innerHTML = '';
         let layout = blockTypes[currentEditTool] ? blockTypes[currentEditTool].tiles : Array(9).fill(0); if (currentEditCategory !== 'shape') layout = blockTypes['cross'].tiles; 
-        if (currentEditTool === 'empty') { previewEl.style.backgroundColor = '#040814'; previewEl.style.border = '1px dashed #1c2541'; } else if (currentEditTool === 'wall') { previewEl.style.backgroundColor = '#0b132b'; } else { previewEl.style.backgroundColor = '#1b263b'; previewEl.style.border = '1px solid #415a77'; }
-        for(let i=0; i<9; i++) { const vx = i % 3, vy = Math.floor(i / 3); const orig = getOriginalTileCoord(vx, vy, brushRotation); const t = document.createElement('div'); t.style.width = '18px'; t.style.height = '18px'; t.style.boxShadow = 'inset 0 0 0 1px rgba(0,0,0,0.2)'; if(layout[orig.y * 3 + orig.x] && currentEditTool !== 'wall') t.style.backgroundColor = '#4a6fa5'; previewEl.appendChild(t); }
+        if (currentEditTool === 'empty') { previewEl.style.backgroundColor = '#040814'; previewEl.style.border = '1px dashed #1c2541'; } else if (currentEditTool === 'wall') { previewEl.style.backgroundColor = '#0b132b'; } else if (currentEditTool === 'surf') { previewEl.style.backgroundColor = '#3b1868'; previewEl.style.border = '1px solid #7a4fc0'; } else { previewEl.style.backgroundColor = '#1b263b'; previewEl.style.border = '1px solid #415a77'; }
+        for(let i=0; i<9; i++) { const vx = i % 3, vy = Math.floor(i / 3); const orig = getOriginalTileCoord(vx, vy, brushRotation); const t = document.createElement('div'); t.style.width = '18px'; t.style.height = '18px'; t.style.boxShadow = 'inset 0 0 0 1px rgba(0,0,0,0.2)'; if(layout[orig.y * 3 + orig.x] && currentEditTool !== 'wall' && currentEditTool !== 'surf') t.style.backgroundColor = '#4a6fa5'; previewEl.appendChild(t); }
     }
 
     function rotateBrush() { brushRotation = (brushRotation + 90) % 360; updateBrushPreview(); }
@@ -774,6 +793,7 @@
     }
 
     function setMode(mode) {
+        document.body.classList.toggle('gm-edit', mode === 'edit');
         if(currentMode === 'edit') savePanelData(); 
 
         currentMode = mode;
@@ -830,11 +850,13 @@
     function selectPlayTool(btnEl, tool) { playTool = tool; document.querySelectorAll('#play-tools .tool-btn').forEach(btn => btn.classList.remove('active-tool')); if(btnEl) btnEl.classList.add('active-tool'); }
     function setGimmickBinding(type) { gimmickBinding = type; document.getElementById('bind-a').className = `toggle-btn ${type === 'A' ? 'gimmick-type-active' : ''}`; document.getElementById('bind-b').className = `toggle-btn ${type === 'B' ? 'gimmick-type-active' : ''}`; }
 
+    function hasSurfTile(b) { return !!(b.tileStates && b.tileStates.some(t => t === 4)); }
+
     function handleRightClickBlockMove(bx, by) {
-        const targetBlock = mapData[currentFloor][by][bx]; if (targetBlock.type === 'empty' || targetBlock.type === 'wall' || !targetBlock.isMovable) { selectedBlockForMove = null; highlightedBlocks = []; renderMap(); return; }
+        const targetBlock = mapData[currentFloor][by][bx]; if (targetBlock.type === 'empty' || targetBlock.type === 'wall' || !targetBlock.isMovable || (targetBlock.floating && !targetBlock.floated)) { selectedBlockForMove = null; highlightedBlocks = []; renderMap(); return; }
         selectedBlockForMove = { x: bx, y: by }; highlightedBlocks = [];
         const directions = [[0, -1], [0, 1], [-1, 0], [1, 0]]; 
-        for (let d of directions) { let nx = bx + d[0], ny = by + d[1]; while (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) { if (mapData[currentFloor][ny][nx].type === 'empty') { highlightedBlocks.push({ x: nx, y: ny }); nx += d[0]; ny += d[1]; } else break; } }
+        for (let d of directions) { let nx = bx + d[0], ny = by + d[1]; while (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) { if (mapData[currentFloor][ny][nx].type === 'empty' && !hasSurfTile(mapData[currentFloor][ny][nx])) { highlightedBlocks.push({ x: nx, y: ny }); nx += d[0]; ny += d[1]; } else break; } }
         renderMap();
     }
 
@@ -845,14 +867,19 @@
 
         if (currentMode === 'edit') {
             if (currentEditCategory === 'system') {
+                if (currentEditTool === 'float') {
+                    if (['empty', 'wall', 'surf', 'start', 'goal'].includes(block.type)) return;
+                    block.floating = !block.floating; block.floated = false;
+                }
                 if (currentEditTool === 'spawn') { if (block.type === 'empty' || block.type === 'wall') return; playerSpawns[currentFloor] = { wx: bx * 3 + vx, wy: by * 3 + vy }; playerPositions[currentFloor] = null; }
             } 
             else if (currentEditCategory === 'shape') {
                 block.type = currentEditTool; block.rotation = brushRotation; block.isMovable = brushMovable; block.isRotatable = brushRotatable;
-                if (currentEditTool === 'empty' || currentEditTool === 'wall') { block.gimmicks = Array(9).fill(null); block.markers = Array(9).fill(null); block.isMovable = false; block.isRotatable = false; block.tileStates = Array(9).fill(0); }
+                if (currentEditTool === 'empty' || currentEditTool === 'wall' || currentEditTool === 'surf') { block.gimmicks = Array(9).fill(null); block.markers = Array(9).fill(null); block.isMovable = false; block.isRotatable = false; block.tileStates = Array(9).fill(0); }
             } 
             else if (currentEditCategory === 'tile') {
-                if (block.type === 'empty' || block.type === 'wall') return;
+                if (block.type === 'wall' || block.type === 'surf') return;
+                if (block.type === 'empty' && currentEditTool !== 4 && currentEditTool !== 0) return;
                 if (!block.tileStates) block.tileStates = Array(9).fill(0);
                 block.tileStates[origIndex] = currentEditTool;
             }
@@ -860,7 +887,7 @@
                 if (currentEditTool === 'delete') { block.gimmicks[origIndex] = null; worldGimmickData[currentFloor][by*3 + vy][bx*3 + vx] = null; } 
                 else {
                     const memoInput = document.getElementById('gimmick-memo'); const gimmickObj = { type: currentEditTool, memo: memoInput.value, isIdentified: false };
-                    if (gimmickBinding === 'A') { if (block.type === 'empty' || block.type === 'wall') return; worldGimmickData[currentFloor][by*3 + vy][bx*3 + vx] = null; block.gimmicks[origIndex] = gimmickObj; } 
+                    if (gimmickBinding === 'A') { if (block.type === 'empty' || block.type === 'wall' || block.type === 'surf') return; worldGimmickData[currentFloor][by*3 + vy][bx*3 + vx] = null; block.gimmicks[origIndex] = gimmickObj; } 
                     else { block.gimmicks[origIndex] = null; worldGimmickData[currentFloor][by*3 + vy][bx*3 + vx] = gimmickObj; }
                     memoInput.value = ''; 
                 }
@@ -885,12 +912,18 @@
                 if (worldGimmickData[currentFloor][wY][wX]) { worldGimmickData[currentFloor][wY][wX].isIdentified = !worldGimmickData[currentFloor][wY][wX].isIdentified; toggled = true; }
                 if (toggled) renderMap(); return;
             } 
+            else if (playTool === 'floatToggle') {
+                if (!block.floating) return;
+                const onIt = playerPos && playerPos.z === currentFloor && Math.floor(playerPos.wx / 3) === bx && Math.floor(playerPos.wy / 3) === by;
+                if (block.floated && onIt) { alert('러너가 서 있는 블럭은 가라앉힐 수 없어요.'); return; }
+                block.floated = !block.floated; renderMap(); return;
+            }
             else if (playTool === 'solveGimmick') {
                 const wX = bx * 3 + vx, wY = by * 3 + vy;
                 if (block.gimmicks[origIndex] || worldGimmickData[currentFloor][wY][wX]) { if(confirm('이 기믹을 해결하여 해제(삭제)하시겠습니까?')) { block.gimmicks[origIndex] = null; worldGimmickData[currentFloor][wY][wX] = null; } } renderMap(); return;
             } 
             else if (playTool === 'rotate') {
-                if (block.type !== 'empty' && block.type !== 'wall' && block.isRotatable) { block.rotation = (block.rotation + 90) % 360; if (playerPos && playerPos.z === currentFloor && Math.floor(playerPos.wx / 3) === bx && Math.floor(playerPos.wy / 3) === by) { const p_vx = playerPos.wx % 3, p_vy = playerPos.wy % 3; playerPos.wx = bx * 3 + (2 - p_vy); playerPos.wy = by * 3 + p_vx; } }
+                if (block.type !== 'empty' && block.type !== 'wall' && block.isRotatable && !(block.floating && !block.floated)) { block.rotation = (block.rotation + 90) % 360; if (playerPos && playerPos.z === currentFloor && Math.floor(playerPos.wx / 3) === bx && Math.floor(playerPos.wy / 3) === by) { const p_vx = playerPos.wx % 3, p_vy = playerPos.wy % 3; playerPos.wx = bx * 3 + (2 - p_vy); playerPos.wy = by * 3 + p_vx; } }
             } 
             else if (playTool === 'clueWarning') { if (clueSizeMode === 'block') block.blockClue = 'warning'; else worldClueData[currentFloor][by*3 + vy][bx*3 + vx] = 'warning'; } 
             else if (playTool === 'clueQuestion') { if (clueSizeMode === 'block') block.blockClue = 'question'; else worldClueData[currentFloor][by*3 + vy][bx*3 + vx] = 'question'; } 
@@ -925,15 +958,26 @@
     function movePlayer(dx, dy) {
         const nwx = playerPos.wx + dx, nwy = playerPos.wy + dy; if (nwx < 0 || nwx >= GRID_SIZE * 3 || nwy < 0 || nwy >= GRID_SIZE * 3) return;
         const nbx = Math.floor(nwx / 3), nby = Math.floor(nwy / 3), vx = nwx % 3, vy = nwy % 3; const targetBlock = mapData[playerPos.z][nby][nbx];
-        if (targetBlock.type === 'empty' || targetBlock.type === 'wall') return;
+        if (targetBlock.type === 'wall') return;
+        if (targetBlock.floating && !targetBlock.floated) return; // 가라앉은 부유 블럭은 지나갈 수 없다
+        if (targetBlock.type === 'empty') {
+            // 허공 칸의 수로 타일: 물이 찼을 때만 (파도타기로) 지나간다
+            const eState = targetBlock.tileStates ? targetBlock.tileStates[vy * 3 + vx] : 0;
+            if (eState !== 4 || !globalWaterLevel) return;
+            playerPos.wx = nwx; playerPos.wy = nwy; playerPositions[currentFloor] = playerPos; renderMap(); return;
+        }
+        // 🌊 수로: 물이 찼을 때만 (파도타기로) 지나갈 수 있다. 블럭은 들어올 수 없다.
+        if (targetBlock.type === 'surf') {
+            if (!globalWaterLevel) return;
+            playerPos.wx = nwx; playerPos.wy = nwy; targetBlock.revealed = true; playerPositions[currentFloor] = playerPos; renderMap(); return;
+        }
         const orig = getOriginalTileCoord(vx, vy, targetBlock.rotation); const origIndex = orig.y * 3 + orig.x;
         
         let isPassable = (blockTypes[targetBlock.type].tiles[origIndex] === 1 || targetBlock.type === 'dot');
         const tState = targetBlock.tileStates ? targetBlock.tileStates[origIndex] : 0;
         
+        if (tState === 4) isPassable = globalWaterLevel; // 수로 타일: 길이 아니어도 물이 차면 헤엄쳐 지나감, 물이 빠지면 아무것도 없음
         if (tState === 1) isPassable = false; 
-        if (tState === 2 && globalWaterLevel === true) isPassable = false; 
-        if (tState === 3 && globalWaterLevel === false) isPassable = false; 
         
         if (isPassable) { playerPos.wx = nwx; playerPos.wy = nwy; targetBlock.revealed = true; playerPositions[currentFloor] = playerPos; renderMap(); }
     }
@@ -979,7 +1023,7 @@
                 const blockData = mapData[currentFloor][y][x];
                 const blockEl = document.getElementById(`block-${x}-${y}`);
                 
-                blockEl.querySelectorAll('.fog, .constraint-icon, .custom-block-bg').forEach(el => el.remove());
+                blockEl.querySelectorAll('.fog, .constraint-icon, .custom-block-bg, .float-seal').forEach(el => el.remove());
                 blockEl.className = `block`;
 
                 const hideFogCompletely = (currentMode === 'edit');
@@ -999,6 +1043,7 @@
                 if (blockData.type === 'empty' || stripContents) { blockEl.classList.add('empty-block'); } 
                 else {
                     if (blockData.type === 'wall') blockEl.classList.add('wall-block');
+                    if (blockData.type === 'surf') blockEl.classList.add(globalWaterLevel ? 'surf-block-high' : 'surf-block-low');
                     if (blockData.type === 'start') blockEl.classList.add('start-point');
                     if (blockData.type === 'goal') blockEl.classList.add('goal-point');
                 }
@@ -1007,11 +1052,20 @@
                 if (highlightedBlocks.some(pos => pos.x === x && pos.y === y)) blockEl.classList.add('highlight');
 
                 blockEl.style.transform = `rotate(0deg)`;
+                const isSunk = !!(blockData.floating && !blockData.floated && !stripContents);
+                if (blockData.floating && !stripContents) {
+                    blockEl.classList.add(isSunk ? 'float-sunk' : 'float-up');
+                    if (isSunk) {
+                        blockEl.style.transform = 'scale(0.9)';
+                        const seal = document.createElement('div'); seal.className = 'float-seal'; seal.innerText = '◇'; blockEl.appendChild(seal);
+                    }
+                }
 
                 if (blockHasCustomImg && !stripContents) {
                     const bgEl = document.createElement('div'); bgEl.className = 'custom-block-bg'; bgEl.style.position = 'absolute'; bgEl.style.inset = '0';
                     bgEl.style.backgroundImage = `url(${customAssets.blocks[blockData.type]})`; bgEl.style.backgroundSize = 'cover'; bgEl.style.transform = `rotate(${blockData.rotation}deg)`; bgEl.style.zIndex = '0'; bgEl.style.borderRadius = '2px';
                     bgEl.style.pointerEvents = 'none'; 
+                    if (isSunk) bgEl.style.filter = 'grayscale(0.8) brightness(0.35)';
                     blockEl.appendChild(bgEl);
                 }
 
@@ -1025,13 +1079,22 @@
                     
                     if (stripContents) { tileEl.className = 'tile'; } 
                     else {
-                        tileEl.className = `tile ${tilesLayout[origIndex] && blockData.type !== 'wall' ? 'path' : ''}`;
+                        tileEl.className = `tile ${tilesLayout[origIndex] && blockData.type !== 'wall' && blockData.type !== 'surf' ? (isSunk ? 'path-ghost' : 'path') : ''}`;
                         if (blockHasCustomImg) { tileEl.style.backgroundColor = 'transparent'; tileEl.style.boxShadow = 'none'; } else { tileEl.style.backgroundColor = ''; tileEl.style.boxShadow = ''; }
+                        ['background-image','background-size','background-position','background-color'].forEach(pr => { if (tileEl.style.getPropertyPriority(pr) === 'important') tileEl.style.removeProperty(pr); });
                         
                         let tState = blockData.tileStates ? blockData.tileStates[origIndex] : 0;
-                        if (tState === 1) tileEl.classList.add('tile-wall');
-                        else if (tState === 2) tileEl.classList.add(globalWaterLevel ? 'tile-water-high' : 'tile-water-low');
-                        else if (tState === 3) tileEl.classList.add(globalWaterLevel ? 'tile-plat-high' : 'tile-plat-low');
+                        if (tState === 1) {
+                            tileEl.classList.add('tile-wall');
+                            // 커스텀 장애물벽 이미지가 있으면, 같은 그림을 타일 크기로 축소해 표시
+                            if (customAssets.blocks.wall) {
+                                tileEl.style.setProperty('background-image', `url(${customAssets.blocks.wall})`, 'important');
+                                tileEl.style.setProperty('background-size', 'cover', 'important');
+                                tileEl.style.setProperty('background-position', 'center', 'important');
+                                tileEl.style.setProperty('background-color', 'transparent', 'important');
+                            }
+                        }
+                        else if (tState === 4) tileEl.classList.add(globalWaterLevel ? 'tile-surf-high' : 'tile-surf-low');
                     }
                     
                     tileEl.innerHTML = ''; delete tileEl.dataset.memo; 
@@ -1061,7 +1124,7 @@
                     }
                 }
 
-                if (blockData.type !== 'empty' && blockData.type !== 'wall' && !stripContents && !isCapturingPL) {
+                if (blockData.type !== 'empty' && blockData.type !== 'wall' && blockData.type !== 'surf' && !isSunk && !stripContents && !isCapturingPL) {
                     if (!blockData.isMovable) { const iconMove = document.createElement('div'); iconMove.className = 'constraint-icon no-move'; iconMove.innerText = '이동X'; blockEl.appendChild(iconMove); }
                     if (!blockData.isRotatable) { const iconRot = document.createElement('div'); iconRot.className = 'constraint-icon no-rot'; iconRot.innerText = '회전X'; blockEl.appendChild(iconRot); }
                 }
@@ -1148,6 +1211,7 @@
         }
         updateClueTracker();
     }
+    document.body.classList.add('gm-edit');
     initBoard();
 </script>
 </body>
