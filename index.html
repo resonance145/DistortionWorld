@@ -171,6 +171,7 @@
     .symbol-hole { color: #111; text-shadow: 0 0 2px #fff; }
     .symbol-switch { color: #e74c3c; }
     .symbol-memo { color: #e0c3fc; }
+    .symbol-trap { color: #ff9f1c; text-shadow: 0 0 4px rgba(255,159,28,0.6); }
 
     .player-marker { display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: none; }
     
@@ -320,7 +321,8 @@
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'waterfall')">⇈ 폭포</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'warphole')">◎ 워프홀</button>
             <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'memo')" style="color:#e0c3fc;">✎ 메모</button>
-            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'delete')" style="grid-column: span 3;">기믹삭제</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'trap')" style="color:#ff9f1c;">⚠ 함정</button>
+            <button class="btn tool-btn" onclick="selectEditTool(this, 'gimmick', 'delete')" style="grid-column: span 2;">기믹삭제</button>
         </div>
         <div id="warp-color-row" style="display:none; margin-top:6px; padding:6px; border:1px solid #415a77; border-radius:6px;">
             <div style="font-size:11px; color:#a9b4c2; margin-bottom:5px;">◎ 워프홀 색 (같은 색끼리 짝으로 쓰면 구별이 쉬워요)</div>
@@ -505,9 +507,12 @@
         enemy: { icon: '☠', class: 'symbol-enemy' },
         hole: { icon: '🕳️', class: 'symbol-hole' },
         switch: { icon: '🕹️', class: 'symbol-switch' },  // (버튼은 없앴지만 예전 맵 호환용으로 남겨 둠)
-        memo: { icon: '✎', class: 'symbol-memo' }
+        memo: { icon: '✎', class: 'symbol-memo' },
+        trap: { icon: '⚠', class: 'symbol-trap' }   // 함정: PL에게는 숨김. 발동 뒤 👁 확인 처리하면 PL에게도 보인다
     };
     // PL 시야(PL 캡처·안개 미리보기)에서 확인 처리 없이도 바로 보이는 기믹. 안개 속(밝혀지지 않은 블럭)은 그대로 가려진다.
+    // 이 툴이 모르는 기믹 종류가 들어 있어도 화면이 멈추지 않게 한다
+    function visOf(t) { return gimmickVisuals[t] || { icon: '?', class: '' }; }
     const PL_ALWAYS_VISIBLE = new Set(['item', 'enemy', 'rock', 'waterfall', 'warphole']);
     // 워프홀 색: 기본은 보라. 다른 색을 고르면 기믹 객체에 color로 저장된다.
     const WARP_COLORS = ['#c77dff', '#4cc9f0', '#2ec4b6', '#80ed99', '#ffd166', '#f8961e', '#ef476f', '#ff8fd8', '#f1f1f1'];
@@ -1131,7 +1136,7 @@
 
                     if (!stripContents) {
                         if (blockData.gimmicks && blockData.gimmicks[origIndex]) {
-                            const gData = blockData.gimmicks[origIndex]; const vis = gimmickVisuals[gData.type];
+                            const gData = blockData.gimmicks[origIndex]; const vis = visOf(gData.type);
                             if (!isPLViewActive) {
                                 tileEl.classList.add('gimmick-a');
                                 const eyeIcon = gData.isIdentified ? `<span style="position:absolute; top:-2px; left:-2px; font-size:10px; z-index:20;">👁️</span>` : '';
@@ -1208,13 +1213,13 @@
                     itemEl.addEventListener('click', (e) => { e.stopPropagation(); handleTileClick(bx, by, vy * 3 + vx); }); itemEl.addEventListener('contextmenu', (e) => { e.preventDefault(); if (currentMode === 'play') handleRightClickBlockMove(bx, by); });
 
                     if (renderWGimmickGM) { 
-                        const vis = gimmickVisuals[wGimmick.type]; itemEl.classList.add('gimmick-b'); const eyeIcon = wGimmick.isIdentified ? `<span style="position:absolute; top:-2px; left:-2px; font-size:10px; z-index:20;">👁️</span>` : '';
+                        const vis = visOf(wGimmick.type); itemEl.classList.add('gimmick-b'); const eyeIcon = wGimmick.isIdentified ? `<span style="position:absolute; top:-2px; left:-2px; font-size:10px; z-index:20;">👁️</span>` : '';
                         itemEl.innerHTML += `${eyeIcon}<span class="symbol-icon ${vis.class}" style="pointer-events:none;${gColor(wGimmick)}">${vis.icon}</span>`; 
                         if(wGimmick.memo) { itemEl.style.pointerEvents = 'auto'; itemEl.dataset.memo = wGimmick.memo; }
                     } else if (renderWGimmickPLIdentified) {
-                        const vis = gimmickVisuals[wGimmick.type]; itemEl.classList.add('gimmick-b'); itemEl.innerHTML += `<span class="symbol-icon ${vis.class}" style="pointer-events:none;${gColor(wGimmick)}">${vis.icon}</span>`; 
+                        const vis = visOf(wGimmick.type); itemEl.classList.add('gimmick-b'); itemEl.innerHTML += `<span class="symbol-icon ${vis.class}" style="pointer-events:none;${gColor(wGimmick)}">${vis.icon}</span>`; 
                     } else if (renderWGimmickPLBlind) {
-                        const vis = gimmickVisuals[wGimmick.type]; itemEl.classList.add('gimmick-b'); 
+                        const vis = visOf(wGimmick.type); itemEl.classList.add('gimmick-b'); 
                         if (!isCapturingPL && gmFogPreview) { itemEl.innerHTML += `<span class="symbol-icon" style="pointer-events:none; color:#fdf0d5; text-shadow:0 0 5px #000; font-size:18px;">❓<span style="position:absolute; bottom:0px; right:0px; font-size:10px; opacity:0.9; text-shadow:none;" class="${vis.class}">${vis.icon}</span></span>`; if(wGimmick.memo) { itemEl.style.pointerEvents = 'auto'; itemEl.dataset.memo = wGimmick.memo; } } 
                         else { itemEl.innerHTML += `<span class="symbol-icon" style="pointer-events:none; color:#fdf0d5; text-shadow:0 0 5px #000; font-size:18px;">❓</span>`; }
                     }
