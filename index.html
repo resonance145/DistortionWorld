@@ -356,6 +356,7 @@
         <div class="tool-grid">
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueWarning')">⚠️ 경고</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueQuestion')">❓ 의문</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueLandmark')" style="color:#ffd166;" title="팔·손처럼 멀리서도 보이는 중요한 것. 안개 속에서도 보인다">✦ 중요</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'clueClear')">지우기</button>
         </div>
 
@@ -363,7 +364,7 @@
         <div class="tool-grid-2">
             <button class="btn tool-btn active-tool" onclick="selectPlayTool(this, 'rotate')">회전(클릭)</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'movePlayer')">플 강제이동</button>
-            <button class="btn tool-btn" onclick="selectPlayTool(this, 'fogToggle')" style="color:#f1c40f;">🌫️ 안개토글</button>
+            <button class="btn tool-btn" onclick="selectPlayTool(this, 'walk')" style="color:#f1c40f;" title="누른 뒤 방향키(또는 WASD)로 플레이어를 움직입니다. 길이 이어진 곳으로만 이동합니다.">🚶 플레이어 이동</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'identifyGimmick')" style="color:#3498db; font-weight:bold;">🔍 정체식별</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'solveGimmick')" style="color:#e74c3c;">✔ 해결 기믹 해제</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'floatToggle')" style="color:#5ed6cd;" title="부유 블럭을 띄우거나 가라앉힘">⇅ 부유 전환</button>
@@ -753,6 +754,18 @@
         }; reader.readAsText(file);
     }
 
+    // 단서 표시 아이콘: 경고 / 의문 / 중요(팔·손처럼 멀리서도 보이는 것)
+    function clueIcon(k) {
+        if (k === 'warning') return '⚠️';
+        if (k === 'landmark') return '<span style="color:#ffd166; text-shadow:0 0 8px rgba(255,209,102,.9), 0 0 3px #000;">✦</span>';
+        return '❓';
+    }
+    function showToast(msg, bad) {
+        let t = document.getElementById('toast');
+        if (!t) { t = document.createElement('div'); t.id = 'toast'; t.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);padding:8px 16px;border-radius:8px;font-size:13px;z-index:9999;pointer-events:none;transition:opacity .3s;box-shadow:0 4px 14px rgba(0,0,0,.5);'; document.body.appendChild(t); }
+        t.textContent = msg; t.style.background = bad ? '#7a1f2b' : '#1b3a4b'; t.style.color = '#fff'; t.style.border = '1px solid ' + (bad ? '#e74c3c' : '#5ed6cd'); t.style.opacity = '1';
+        clearTimeout(t._h); t._h = setTimeout(() => { t.style.opacity = '0'; }, 1200);
+    }
     async function copyMapImage(copyMode) {
         const prevMode = currentMode;
         if (copyMode === 'GM') setMode('edit'); else if (copyMode === 'PL') { isCapturingPL = true; setMode('play'); }
@@ -766,7 +779,7 @@
         
         try {
             const canvas = await html2canvas(target, { backgroundColor: '#0b132b', scale: 2 });
-            canvas.toBlob(async (blob) => { try { const item = new ClipboardItem({ "image/png": blob }); await navigator.clipboard.write([item]); alert('해당 맵이 성공적으로 클립보드에 복사되었습니다.'); } catch (err) { alert('클립보드 복사 중 오류가 발생했습니다.'); } });
+            canvas.toBlob(async (blob) => { try { const item = new ClipboardItem({ "image/png": blob }); await navigator.clipboard.write([item]); showToast('📸 클립보드에 복사됨'); } catch (err) { showToast('클립보드 복사 실패', true); } });
         } catch (err) {} finally { 
             target.style.overflow = oldOverflow;
             document.body.classList.remove(`capture-${copyMode}`); if (copyMode === 'PL') isCapturingPL = false; setMode(prevMode); renderMap(); 
@@ -941,6 +954,7 @@
                 selectedBlockForMove = null; highlightedBlocks = []; renderMap(); return; 
             }
 
+            if (playTool === 'walk') { containerEl.focus(); return; }
             if (playTool === 'movePlayer') { playerPos = { wx: bx * 3 + vx, wy: by * 3 + vy, z: currentFloor }; playerPositions[currentFloor] = playerPos; block.revealed = true; renderMap(); return; } 
             else if (playTool === 'fogToggle') { if (lanternMode) { alert('🏮 등불 모드가 켜져 있습니다!'); return; } block.revealed = !block.revealed; renderMap(); return; } 
             else if (playTool === 'identifyGimmick') {
@@ -964,6 +978,7 @@
             } 
             else if (playTool === 'clueWarning') { if (clueSizeMode === 'block') block.blockClue = 'warning'; else worldClueData[currentFloor][by*3 + vy][bx*3 + vx] = 'warning'; } 
             else if (playTool === 'clueQuestion') { if (clueSizeMode === 'block') block.blockClue = 'question'; else worldClueData[currentFloor][by*3 + vy][bx*3 + vx] = 'question'; } 
+            else if (playTool === 'clueLandmark') { if (clueSizeMode === 'block') block.blockClue = 'landmark'; else worldClueData[currentFloor][by*3 + vy][bx*3 + vx] = 'landmark'; }
             else if (playTool === 'clueClear') { if (clueSizeMode === 'block') block.blockClue = null; else worldClueData[currentFloor][by*3 + vy][bx*3 + vx] = null; } 
             else {
                 const markerColor = document.getElementById('marker-color-select').value;
@@ -986,8 +1001,11 @@
     }
 
     window.addEventListener('keyup', function(e) { pressedKeys[e.code] = false; pressedKeys[e.key] = false; updatePlayerFacing(); });
-    containerEl.addEventListener('keydown', function(e) {
-        if (currentMode !== 'play' || !playerPos) return; pressedKeys[e.code] = true; pressedKeys[e.key] = true; updatePlayerFacing();
+    window.addEventListener('keydown', function(e) {
+        if (currentMode !== 'play' || !playerPos) return;
+        const tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+        if (playTool !== 'walk' && document.activeElement !== containerEl) return; pressedKeys[e.code] = true; pressedKeys[e.key] = true; updatePlayerFacing();
         let dx = 0, dy = 0; if (e.code === 'ArrowUp' || e.code === 'KeyW') dy = -1; else if (e.code === 'ArrowDown' || e.code === 'KeyS') dy = 1; else if (e.code === 'ArrowLeft' || e.code === 'KeyA') dx = -1; else if (e.code === 'ArrowRight' || e.code === 'KeyD') dx = 1; else return;
         e.preventDefault(); movePlayer(dx, dy);
     }, false);
@@ -1136,7 +1154,7 @@
                     
                     tileEl.innerHTML = ''; delete tileEl.dataset.memo; 
 
-                    if (!stripContents) {
+                    if (!stripContents && !(isSunk && isPLViewActive)) {   // 가라앉은 부유 블럭의 기믹은 PL 시야·캡처에 보이지 않는다
                         if (blockData.gimmicks && blockData.gimmicks[origIndex]) {
                             const gData = blockData.gimmicks[origIndex]; const vis = visOf(gData.type);
                             if (!isPLViewActive) {
@@ -1187,11 +1205,12 @@
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
                 const blockData = mapData[currentFloor][y][x];
-                if (blockData.blockClue) {
+                const clueSunk = !!(blockData.floating && !blockData.floated) && isPLViewActive;   // 가라앉은 블럭의 단서 표시는 PL 시야·캡처에 보이지 않는다
+                if (blockData.blockClue && !clueSunk) {
                     const clueEl = document.createElement('div'); clueEl.className = 'overlay-item';
                     clueEl.style.left = `${x * 66}px`; clueEl.style.top = `${y * 66}px`;  clueEl.style.width = '62px'; clueEl.style.height = '62px';
                     clueEl.style.fontSize = '35px'; clueEl.style.textShadow = '0 0 10px rgba(0,0,0,1)';
-                    clueEl.innerHTML = blockData.blockClue === 'warning' ? '⚠️' : '❓'; clueOverlayEl.appendChild(clueEl);
+                    clueEl.innerHTML = clueIcon(blockData.blockClue); clueOverlayEl.appendChild(clueEl);
                 }
             }
         }
@@ -1200,13 +1219,14 @@
             for (let wx = 0; wx < GRID_SIZE * 3; wx++) {
                 const bx = Math.floor(wx / 3), vx = wx % 3; const by = Math.floor(wy / 3), vy = wy % 3; const blockUnder = mapData[currentFloor][by][bx];
                 const wClue = worldClueData[currentFloor][wy][wx];
-                if (wClue) { const clueEl = document.createElement('div'); clueEl.className = 'overlay-item'; clueEl.style.left = `${bx * 66 + 1 + vx * 20}px`; clueEl.style.top = `${by * 66 + 1 + vy * 20}px`; clueEl.style.fontSize = '18px'; clueEl.style.textShadow = '0 0 5px rgba(0,0,0,1)'; clueEl.innerHTML = wClue === 'warning' ? '⚠️' : '❓'; clueOverlayEl.appendChild(clueEl); }
+                if (wClue && !(blockUnder.floating && !blockUnder.floated && isPLViewActive)) { const clueEl = document.createElement('div'); clueEl.className = 'overlay-item'; clueEl.style.left = `${bx * 66 + 1 + vx * 20}px`; clueEl.style.top = `${by * 66 + 1 + vy * 20}px`; clueEl.style.fontSize = '18px'; clueEl.style.textShadow = '0 0 5px rgba(0,0,0,1)'; clueEl.innerHTML = clueIcon(wClue); clueOverlayEl.appendChild(clueEl); }
 
                 let isOverlayBlockRevealed = (blockUnder.type === 'empty' || blockUnder.revealed);
                 if (lanternMode && currentMode === 'play') { if (playerPos && playerPos.z === currentFloor) { const pbx = Math.floor(playerPos.wx / 3); const pby = Math.floor(playerPos.wy / 3); isOverlayBlockRevealed = (Math.abs(bx - pbx) <= 1 && Math.abs(by - pby) <= 1); } else isOverlayBlockRevealed = false; }
                 if (blockUnder.type === 'start') isOverlayBlockRevealed = true;
 
-                const shouldHideItem = !isOverlayBlockRevealed && isPLViewActive;
+                const sunkUnder = !!(blockUnder.floating && !blockUnder.floated);
+                const shouldHideItem = (!isOverlayBlockRevealed || sunkUnder) && isPLViewActive;
                 const wGimmick = worldGimmickData[currentFloor][wy][wx]; const wMarker = worldMarkerData[currentFloor][wy][wx];
                 const renderWGimmickGM = wGimmick && !isPLViewActive; const renderWGimmickPLIdentified = wGimmick && isPLViewActive && (wGimmick.isIdentified || PL_ALWAYS_VISIBLE.has(wGimmick.type)) && !shouldHideItem; const renderWGimmickPLBlind = wGimmick && isPLViewActive && !wGimmick.isIdentified && gimmickBlindMode && !shouldHideItem;
                 
