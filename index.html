@@ -378,6 +378,7 @@
             <option value="#fee440">노란색 (주의)</option>
             <option value="#ff9f1c">주황색 (기타)</option>
         </select>
+        <input id="marker-msg" class="input-field" maxlength="80" placeholder="깃발에 남길 메시지 (비워 두면 메시지 없음)" style="margin-bottom: 5px;">
         <div class="tool-grid-2">
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'markerA')">🚩 블럭종속</button>
             <button class="btn tool-btn" onclick="selectPlayTool(this, 'markerB')">🏁 공간고정</button>
@@ -565,6 +566,16 @@
         return `<svg viewBox="0 0 24 24" width="16" height="16" style="filter: drop-shadow(0 0 2px #000);"><path ${transform} fill="${color}" d="M4 2v20h2v-6h14l-4-5 4-5H6V2z"/></svg>`;
     }
     
+    /* 깃발: 예전 저장은 색 문자열, 메시지가 있으면 {color, msg} */
+    const markerColorOf = m => (m && typeof m === 'object') ? m.color : m;
+    const markerMsgOf = m => (m && typeof m === 'object' && m.msg) ? m.msg : '';
+    function flagHTML(m, flipped) {
+        const msg = markerMsgOf(m);
+        const dot = msg ? `<span style="position:absolute; top:-6px; right:-8px; font-size:9px; line-height:1;">💬</span>` : '';
+        return `<div style="position:absolute; z-index:105; pointer-events:none;">${getFlagSVG(markerColorOf(m), flipped)}${dot}</div>`;
+    }
+    function escHTML(t) { return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
     function getPlayerMarkerSVG() {
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="#c42A12" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.8));">
             <circle cx="12" cy="8.5" r="3.5"/>
@@ -901,7 +912,7 @@
         const targetBlock = mapData[currentFloor][by][bx]; if (targetBlock.type === 'empty' || targetBlock.type === 'wall' || !targetBlock.isMovable || (targetBlock.floating && !targetBlock.floated)) { selectedBlockForMove = null; highlightedBlocks = []; renderMap(); return; }
         selectedBlockForMove = { x: bx, y: by }; highlightedBlocks = [];
         const directions = [[0, -1], [0, 1], [-1, 0], [1, 0]]; 
-        for (let d of directions) { let nx = bx + d[0], ny = by + d[1]; while (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) { if (mapData[currentFloor][ny][nx].type === 'empty' && !hasSurfTile(mapData[currentFloor][ny][nx])) { highlightedBlocks.push({ x: nx, y: ny }); nx += d[0]; ny += d[1]; } else break; } }
+        for (let d of directions) { const nx = bx + d[0], ny = by + d[1]; if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE && mapData[currentFloor][ny][nx].type === 'empty' && !hasSurfTile(mapData[currentFloor][ny][nx])) highlightedBlocks.push({ x: nx, y: ny }); }   // 밀기는 한 번에 한 칸
         renderMap();
     }
 
@@ -982,8 +993,10 @@
             else if (playTool === 'clueClear') { if (clueSizeMode === 'block') block.blockClue = null; else worldClueData[currentFloor][by*3 + vy][bx*3 + vx] = null; } 
             else {
                 const markerColor = document.getElementById('marker-color-select').value;
-                if (playTool === 'markerA') { if (block.type === 'empty' || block.type === 'wall') return; block.markers[origIndex] = markerColor; } 
-                else if (playTool === 'markerB') { worldMarkerData[currentFloor][by*3 + vy][bx*3 + vx] = markerColor; } 
+                const msgEl = document.getElementById('marker-msg'); const markerMsg = (msgEl.value || '').trim();
+                const markerVal = markerMsg ? { color: markerColor, msg: markerMsg } : markerColor;
+                if (playTool === 'markerA') { if (block.type === 'empty' || block.type === 'wall') return; block.markers[origIndex] = markerVal; msgEl.value = ''; } 
+                else if (playTool === 'markerB') { worldMarkerData[currentFloor][by*3 + vy][bx*3 + vx] = markerVal; msgEl.value = ''; } 
                 else if (playTool === 'markerClear') { block.markers[origIndex] = null; worldMarkerData[currentFloor][by*3 + vy][bx*3 + vx] = null; }
             }
             renderMap();
@@ -1054,7 +1067,7 @@
                     const bg = block.gimmicks[origIdx];
                     if(bg && bg.isIdentified && bg.memo) { hasClues = true; listEl.innerHTML += `<li class="clue-item"><b>[${rowNames[y]}-${x+1}]</b> ${bg.memo}</li>`; }
                     const bm = block.markers[origIdx];
-                    if(bm) { hasClues = true; listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${bm}"><b>[${rowNames[y]}-${x+1}] 🚩</b> 플레이어 표식</li>`; }
+                    if(bm) { hasClues = true; const bmsg = markerMsgOf(bm); listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${markerColorOf(bm)}"><b>[${rowNames[y]}-${x+1}] 🚩</b> ${bmsg ? escHTML(bmsg) : '플레이어 표식'}</li>`; }
                 }
             }
         }
@@ -1064,7 +1077,7 @@
                 const wg = worldGimmickData[currentFloor][wy][wx];
                 if(wg && wg.isIdentified && wg.memo) { hasClues = true; listEl.innerHTML += `<li class="clue-item"><b>[${rowNames[by]}-${bx+1}]</b> ${wg.memo}</li>`; }
                 const wm = worldMarkerData[currentFloor][wy][wx];
-                if(wm) { hasClues = true; listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${wm}"><b>[${rowNames[by]}-${bx+1}] 🏁</b> 고정 표식</li>`; }
+                if(wm) { hasClues = true; const wmsg = markerMsgOf(wm); listEl.innerHTML += `<li class="clue-item marker-item" style="border-left-color:${markerColorOf(wm)}"><b>[${rowNames[by]}-${bx+1}] 🏁</b> ${wmsg ? escHTML(wmsg) : '고정 표식'}</li>`; }
             }
         }
         if(!hasClues) { listEl.innerHTML = `<li style="color:#778da9; text-align:center; margin-top:30px; font-size:12px; line-height:1.6;">밝혀진 기믹 메모나<br>설치된 마커가 없습니다.</li>`; }
@@ -1175,7 +1188,8 @@
                     }
 
                     if (blockData.markers && blockData.markers[origIndex]) {
-                        const mColor = blockData.markers[origIndex]; tileEl.innerHTML += `<div style="position:absolute; z-index:105; pointer-events:none;">${getFlagSVG(mColor, false)}</div>`;
+                        const mk = blockData.markers[origIndex]; tileEl.innerHTML += flagHTML(mk, false);
+                        if (markerMsgOf(mk)) { tileEl.style.pointerEvents = 'auto'; tileEl.dataset.memo = (tileEl.dataset.memo ? tileEl.dataset.memo + '\n' : '') + '🚩 ' + markerMsgOf(mk); }
                     }
                 }
 
@@ -1246,7 +1260,8 @@
                         else { itemEl.innerHTML += `<span class="symbol-icon" style="pointer-events:none; color:#fdf0d5; text-shadow:0 0 5px #000; font-size:18px;">❓</span>`; }
                     }
 
-                    if (wMarker) { itemEl.innerHTML += `<div style="position:absolute; z-index:105; pointer-events:none;">${getFlagSVG(wMarker, true)}</div>`; }
+                    if (wMarker) { itemEl.innerHTML += flagHTML(wMarker, true);
+                        if (markerMsgOf(wMarker)) { itemEl.style.pointerEvents = 'auto'; itemEl.dataset.memo = (itemEl.dataset.memo ? itemEl.dataset.memo + '\n' : '') + '🏁 ' + markerMsgOf(wMarker); } }
                     overlayEl.appendChild(itemEl);
                 }
             }
