@@ -1129,7 +1129,7 @@
                     }
                 }
 
-                if (blockHasCustomImg && !stripContents) {
+                if (blockHasCustomImg && !stripContents && !(isSunk && currentMode !== 'edit')) {
                     const bgEl = document.createElement('div'); bgEl.className = 'custom-block-bg'; bgEl.style.position = 'absolute'; bgEl.style.inset = '0';
                     bgEl.style.backgroundImage = `url(${customAssets.blocks[blockData.type]})`; bgEl.style.backgroundSize = 'cover'; bgEl.style.transform = `rotate(${blockData.rotation}deg)`; bgEl.style.zIndex = '0'; bgEl.style.borderRadius = '2px';
                     bgEl.style.pointerEvents = 'none'; 
@@ -1147,7 +1147,7 @@
                     
                     if (stripContents) { tileEl.className = 'tile'; } 
                     else {
-                        tileEl.className = `tile ${tilesLayout[origIndex] && blockData.type !== 'wall' && blockData.type !== 'surf' ? (isSunk ? 'path-ghost' : 'path') : ''}`;
+                        tileEl.className = `tile ${tilesLayout[origIndex] && blockData.type !== 'wall' && blockData.type !== 'surf' ? (isSunk ? (currentMode === 'edit' ? 'path-ghost' : '') : 'path') : ''}`;
                         if (blockHasCustomImg) { tileEl.style.backgroundColor = 'transparent'; tileEl.style.boxShadow = 'none'; } else { tileEl.style.backgroundColor = ''; tileEl.style.boxShadow = ''; }
                         ['background-image','background-size','background-position','background-color'].forEach(pr => { if (tileEl.style.getPropertyPriority(pr) === 'important') tileEl.style.removeProperty(pr); });
                         
