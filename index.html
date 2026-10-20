@@ -1165,7 +1165,7 @@
                         else if (tState === 4) tileEl.classList.add(globalWaterLevel ? 'tile-surf-high' : 'tile-surf-low');
                     }
                     
-                    tileEl.innerHTML = ''; delete tileEl.dataset.memo; 
+                    tileEl.innerHTML = ''; delete tileEl.dataset.memo; tileEl.style.zIndex = '';
 
                     if (!stripContents && !(isSunk && isPLViewActive)) {   // 가라앉은 부유 블럭의 기믹은 PL 시야·캡처에 보이지 않는다
                         if (blockData.gimmicks && blockData.gimmicks[origIndex]) {
@@ -1188,7 +1188,7 @@
                     }
 
                     if (blockData.markers && blockData.markers[origIndex]) {
-                        const mk = blockData.markers[origIndex]; tileEl.innerHTML += flagHTML(mk, false);
+                        const mk = blockData.markers[origIndex]; tileEl.innerHTML += flagHTML(mk, false); tileEl.style.zIndex = '100';   // 깃발은 안개 위로
                         if (markerMsgOf(mk)) { tileEl.style.pointerEvents = 'auto'; tileEl.dataset.memo = (tileEl.dataset.memo ? tileEl.dataset.memo + '\n' : '') + '🚩 ' + markerMsgOf(mk); }
                     }
                 }
